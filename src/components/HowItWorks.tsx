@@ -95,14 +95,12 @@ const secondRow = reviews.slice(reviews.length / 2);
 /**
  * ReviewCard Component
  *
- * Displays a single user review in a card format.
- * Used in the marquee and static mobile list.
+ * Compact, single-line review card — avatar, name, stars, and a short quote.
  */
 const ReviewCard = ({
     title,
     text,
     name,
-    date,
     avatar,
 }: {
     title: string;
@@ -112,42 +110,28 @@ const ReviewCard = ({
     avatar: string;
 }) => {
     return (
-        <div className="w-[280px] sm:w-[350px] mx-3 sm:mx-4 bg-white p-6 sm:p-8 rounded-3xl shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-zinc-100 hover:shadow-[0_8px_30px_rgb(0,0,0,0.08)] transition-all duration-300 flex flex-col h-full justify-between group cursor-pointer">
-            {/* Top Row: Stars & Google Logo */}
-            <div className="flex justify-between items-start mb-6">
-                <div className="flex gap-1">
-                    {[1, 2, 3, 4, 5].map((star) => (
-                        <Star key={star} size={18} className="text-yellow-400 fill-yellow-400" />
-                    ))}
-                </div>
-                <GoogleLogo />
+        <div className="mx-2 sm:mx-3 bg-white px-4 py-3 rounded-xl shadow-[0_2px_12px_rgb(0,0,0,0.04)] border border-zinc-100 hover:shadow-[0_4px_16px_rgb(0,0,0,0.07)] transition-all duration-200 flex items-center gap-3 cursor-pointer w-[320px] sm:w-[360px]">
+            {/* Avatar */}
+            <div className="w-8 h-8 rounded-full bg-zinc-100 relative overflow-hidden shrink-0">
+                <Image
+                    src={avatar}
+                    alt={name}
+                    fill
+                    sizes="32px"
+                    className="object-cover"
+                />
             </div>
-
             {/* Content */}
-            <div className="mb-8">
-                <h3 className="font-display text-xl font-bold text-zinc-900 mb-3 group-hover:text-blue-600 transition-colors">
-                    {title}
-                </h3>
-                <p className="text-zinc-600 leading-relaxed text-sm line-clamp-4">
-                    "{text}"
-                </p>
-            </div>
-
-            {/* User Info */}
-            <div className="flex items-center gap-4 mt-auto">
-                <div className="w-10 h-10 rounded-full bg-zinc-100 relative overflow-hidden">
-                    <Image
-                        src={avatar}
-                        alt={name}
-                        fill
-                        sizes="48px"
-                        className="object-cover"
-                    />
+            <div className="flex-1 min-w-0">
+                <div className="flex items-center gap-2 mb-0.5">
+                    <span className="font-semibold text-xs text-zinc-900 truncate">{name}</span>
+                    <div className="flex gap-0.5 shrink-0">
+                        {[1, 2, 3, 4, 5].map((star) => (
+                            <Star key={star} size={10} className="text-yellow-400 fill-yellow-400" />
+                        ))}
+                    </div>
                 </div>
-                <div className="flex flex-col">
-                    <span className="font-bold text-sm text-zinc-900">{name}</span>
-                    <span className="text-xs text-zinc-400">{date}</span>
-                </div>
+                <p className="text-zinc-500 text-[11px] leading-snug truncate">&ldquo;{text}&rdquo;</p>
             </div>
         </div>
     );
@@ -190,7 +174,7 @@ export default function HowItWorks() {
                                     className="object-contain"
                                 />
                             </div>
-                            <h3 className="font-bold text-sm sm:text-lg md:text-xl mb-1 sm:mb-2 md:mb-3">Verified Professionals</h3>
+                            <h3 className="font-display font-bold text-base sm:text-lg md:text-xl mb-1 sm:mb-2 md:mb-3">Verified Professionals</h3>
                             <p className="text-zinc-500 text-xs sm:text-sm md:text-base">Every pro undergoes a strict background check and trade verification process.</p>
                         </div>
                         <div className="bg-zinc-50 p-5 sm:p-6 md:p-8 rounded-2xl sm:rounded-3xl border border-zinc-100 flex flex-col items-center text-center">
@@ -203,7 +187,7 @@ export default function HowItWorks() {
                                     className="object-contain"
                                 />
                             </div>
-                            <h3 className="font-bold text-sm sm:text-lg md:text-xl mb-1 sm:mb-2 md:mb-3">Authentic Reviews</h3>
+                            <h3 className="font-display font-bold text-base sm:text-lg md:text-xl mb-1 sm:mb-2 md:mb-3">Authentic Reviews</h3>
                             <p className="text-zinc-500 text-xs sm:text-sm md:text-base">Reviews are from real neighbors who have actually used the service.</p>
                         </div>
                         <div className="bg-zinc-50 p-5 sm:p-6 md:p-8 rounded-2xl sm:rounded-3xl border border-zinc-100 flex flex-col items-center text-center">
@@ -216,7 +200,7 @@ export default function HowItWorks() {
                                     className="object-contain"
                                 />
                             </div>
-                            <h3 className="font-bold text-sm sm:text-lg md:text-xl mb-1 sm:mb-2 md:mb-3">Community Vetted</h3>
+                            <h3 className="font-display font-bold text-base sm:text-lg md:text-xl mb-1 sm:mb-2 md:mb-3">Community Vetted</h3>
                             <p className="text-zinc-500 text-xs sm:text-sm md:text-base">Services are constantly rated by your local community to maintain high standards.</p>
                         </div>
                     </div>
@@ -227,7 +211,7 @@ export default function HowItWorks() {
                     <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 md:gap-12 items-center">
                         {/* Left: Content */}
                         <div className="text-left">
-                            <h2 className="font-display text-3xl md:text-4xl font-bold text-zinc-900 mb-6 leading-tight">
+                            <h2 className="font-display text-2xl sm:text-3xl md:text-4xl font-bold text-zinc-900 mb-6 leading-tight tracking-tight">
                                 Most Used Services
                             </h2>
                             <p className="text-zinc-500 text-base sm:text-lg md:text-xl leading-relaxed mb-6 sm:mb-8">
@@ -324,7 +308,7 @@ export default function HowItWorks() {
                 {/* Top Rated Professionals (Marquee Reverse / Right to Left) */}
                 <div className="mb-16 md:mb-24">
                     <div className="px-6 md:px-12 mb-8">
-                        <h2 className="font-display text-xl sm:text-2xl md:text-3xl font-bold text-zinc-900">Top Rated Professionals</h2>
+                        <h2 className="font-display text-2xl sm:text-3xl md:text-4xl font-bold text-zinc-900 tracking-tight">Top Rated Professionals</h2>
                     </div>
                     <div className="relative flex w-full flex-col items-center justify-center overflow-hidden">
                         <Marquee reverse pauseOnHover className="[--duration:30s]">
@@ -377,7 +361,7 @@ export default function HowItWorks() {
                             <ReviewCard key={review.id} {...review} />
                         ))}
                     </Marquee>
-                    <Marquee reverse pauseOnHover className="[--duration:40s] mt-8">
+                    <Marquee reverse pauseOnHover className="[--duration:40s] mt-3">
                         {secondRow.map((review) => (
                             <ReviewCard key={review.id} {...review} />
                         ))}
@@ -386,60 +370,35 @@ export default function HowItWorks() {
                     <div className="pointer-events-none absolute inset-y-0 right-0 w-1/3 bg-gradient-to-l from-white dark:from-background"></div>
                 </div>
 
-                {/* Mobile Static Reviews (Side by Side) */}
-                <div className="md:hidden w-full overflow-x-auto snap-x snap-mandatory flex gap-3 sm:gap-4 px-4 sm:px-6 pb-6 sm:pb-8 no-scrollbar">
-                    {reviews.map((review, i) => {
-                        // Matte Pop Colors Cycle
-                        const colors = [
-                            'bg-blue-50 border-blue-100',
-                            'bg-rose-50 border-rose-100',
-                            'bg-amber-50 border-amber-100',
-                            'bg-emerald-50 border-emerald-100',
-                            'bg-violet-50 border-violet-100',
-                            'bg-orange-50 border-orange-100'
-                        ];
-                        const colorClass = colors[i % colors.length];
-
-                        return (
-                            <div
-                                key={review.id}
-                                className={cn(
-                                    "min-w-[240px] sm:min-w-[280px] md:min-w-[350px] snap-center rounded-2xl sm:rounded-[2rem] p-5 sm:p-6 md:p-8 border flex flex-col justify-between h-[250px] sm:h-[280px] md:h-[320px]",
-                                    colorClass
-                                )}
-                            >
-                                <div>
-                                    <div className="flex gap-1 mb-3 md:mb-4">
-                                        {[1, 2, 3, 4, 5].map((star) => (
-                                            <Star key={star} size={14} className="text-zinc-900 fill-zinc-900 md:w-4 md:h-4" /> // Matte black stars for aesthetic
+                {/* Mobile Reviews */}
+                <div className="md:hidden w-full overflow-x-auto snap-x snap-mandatory flex gap-2 px-4 pb-6 no-scrollbar">
+                    {reviews.map((review) => (
+                        <div
+                            key={review.id}
+                            className="min-w-[280px] snap-center bg-zinc-50 border border-zinc-100 rounded-xl px-3 py-2.5 flex items-center gap-2.5"
+                        >
+                            <div className="w-7 h-7 rounded-full bg-zinc-200 relative overflow-hidden shrink-0">
+                                <Image
+                                    src={review.avatar}
+                                    alt={review.name}
+                                    fill
+                                    sizes="28px"
+                                    className="object-cover"
+                                />
+                            </div>
+                            <div className="flex-1 min-w-0">
+                                <div className="flex items-center gap-1.5 mb-0.5">
+                                    <span className="font-semibold text-[11px] text-zinc-900 truncate">{review.name}</span>
+                                    <div className="flex gap-0.5 shrink-0">
+                                        {[1, 2, 3, 4, 5].map((s) => (
+                                            <Star key={s} size={8} className="text-yellow-400 fill-yellow-400" />
                                         ))}
                                     </div>
-                                    <h3 className="font-display text-xl md:text-2xl font-bold text-zinc-900 mb-2 md:mb-3">
-                                        {review.title}
-                                    </h3>
-                                    <p className="text-zinc-700 leading-relaxed font-medium text-sm md:text-base">
-                                        "{review.text}"
-                                    </p>
                                 </div>
-
-                                <div className="flex items-center gap-3 md:gap-4 mt-4 md:mt-6">
-                                    <div className="w-10 h-10 md:w-12 md:h-12 rounded-full border-2 border-white/50 relative overflow-hidden shadow-sm">
-                                        <Image
-                                            src={review.avatar}
-                                            alt={review.name}
-                                            fill
-                                            sizes="48px"
-                                            className="object-cover"
-                                        />
-                                    </div>
-                                    <div className="flex flex-col">
-                                        <span className="font-bold text-sm md:text-base text-zinc-900">{review.name}</span>
-                                        <span className="text-[10px] md:text-xs text-zinc-500 font-medium uppercase tracking-wider opacity-60">{review.date}</span>
-                                    </div>
-                                </div>
+                                <p className="text-zinc-500 text-[10px] leading-snug truncate">&ldquo;{review.text}&rdquo;</p>
                             </div>
-                        );
-                    })}
+                        </div>
+                    ))}
                 </div>
             </div>
         </section>

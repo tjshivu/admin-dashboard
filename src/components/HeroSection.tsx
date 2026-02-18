@@ -43,17 +43,19 @@ export default function HeroSection() {
     const textDisplay = useTransform(smoothProgress, (v) => v > 0.15 ? "none" : "flex");
 
     // 2. Phone Animations (Spring-smoothed for fluid motion)
+    // Phone enters from right, centers, stays centered, then fades out in place
     const phoneLeft = useTransform(smoothProgress,
-        [0, 0.2, 0.8, 1],
-        ["80%", "50%", "50%", "120%"]
+        [0, 0.18, 0.85],
+        ["80%", "50%", "50%"]
     );
     const phoneX = "-50%";
-    const phoneScale = useTransform(smoothProgress, [0, 0.2, 0.8, 1], [1, 1.15, 1.15, 0.9]);
-    const phoneRotateY = useTransform(smoothProgress, [0, 0.2], [5, 0]);
+    const phoneScale = useTransform(smoothProgress, [0, 0.18, 0.82, 0.93], [1, 1.15, 1.15, 0.85]);
+    const phoneOpacity = useTransform(smoothProgress, [0.82, 0.93], [1, 0]);
+    const phoneRotateY = useTransform(smoothProgress, [0, 0.18], [5, 0]);
 
     // 3. Background Watermark Text (Smoothed fade in, synced with phone centering)
-    const bgTextOpacity = useTransform(smoothProgress, [0.12, 0.25], [0, 1]);
-    const bgTextFadeOut = useTransform(smoothProgress, [0.75, 0.9], [1, 0]);
+    const bgTextOpacity = useTransform(smoothProgress, [0.12, 0.22], [0, 1]);
+    const bgTextFadeOut = useTransform(smoothProgress, [0.80, 0.90], [1, 0]);
     const bgTextCombinedOpacity = useTransform(
         [bgTextOpacity, bgTextFadeOut],
         ([fadeIn, fadeOut]: number[]) => Math.min(fadeIn, fadeOut)
@@ -79,7 +81,7 @@ export default function HeroSection() {
     const [currentIndex, setCurrentIndex] = useState(0);
 
     // Wider scroll range for more breathing room between slides
-    const slideProgress = useTransform(smoothProgress, [0.2, 0.78], [0, CAROUSEL_ITEMS.length - 1]);
+    const slideProgress = useTransform(smoothProgress, [0.15, 0.78], [0, CAROUSEL_ITEMS.length - 1]);
 
     useMotionValueEvent(slideProgress, "change", (latest) => {
         const index = Math.round(latest);
@@ -90,7 +92,7 @@ export default function HeroSection() {
     });
 
     return (
-        <div ref={containerRef} className="relative h-auto pt-20 pb-0 md:pt-24 lg:py-0 lg:h-[300vh] bg-white">
+        <div ref={containerRef} className="relative h-auto pt-20 pb-0 md:pt-24 lg:py-0 lg:h-[400vh] bg-white">
             <div className="relative lg:sticky top-0 h-auto lg:h-screen w-full overflow-visible lg:overflow-hidden flex items-center justify-center">
 
                 {/* Backgrounds */}
@@ -98,6 +100,67 @@ export default function HeroSection() {
                     style={{ backgroundImage: 'radial-gradient(#000 1px, transparent 1px)', backgroundSize: '30px 30px' }}
                 />
                 <div className="absolute inset-0 z-0 bg-gradient-to-r from-white via-white/90 to-white/50 pointer-events-none" />
+
+                {/* Phone — Now outside z-10 container so it renders above header */}
+                <div className="absolute inset-0 flex items-center pointer-events-none z-[55]">
+                    <motion.div
+                        style={{
+                            left: phoneLeft,
+                            x: phoneX,
+                            rotateY: phoneRotateY,
+                            scale: phoneScale,
+                            opacity: phoneOpacity,
+                            willChange: 'transform, opacity, left',
+                        }}
+                        className="absolute top-1/2 -translate-y-1/2 w-[280px] h-[560px] md:w-[300px] md:h-[600px] bg-zinc-900 rounded-[45px] md:rounded-[50px] border-[7px] md:border-[8px] border-zinc-800 shadow-2xl shadow-zinc-900/30 overflow-hidden z-20 group pointer-events-auto hidden lg:block"
+                    >
+                        {/* Notch */}
+                        <div className="absolute top-0 left-1/2 -translate-x-1/2 w-28 md:w-32 h-6 md:h-7 bg-black rounded-b-2xl z-20" />
+
+                        {/* Screen Content */}
+                        <div className="w-full h-full bg-zinc-50 relative overflow-hidden flex flex-col items-center justify-center p-5 md:p-6 text-center">
+                            <div className="absolute inset-0 bg-gradient-to-b from-zinc-900/5 to-transparent pointer-events-none" />
+
+                            <AnimatePresence mode="wait">
+                                {CAROUSEL_ITEMS[currentIndex].type === 'qr' ? (
+                                    <motion.div
+                                        key="qr-view"
+                                        initial={{ opacity: 0, scale: 0.85, filter: 'blur(8px)' }}
+                                        animate={{ opacity: 1, scale: 1, filter: 'blur(0px)' }}
+                                        exit={{ opacity: 0, scale: 1.05, filter: 'blur(8px)' }}
+                                        transition={{ duration: 0.5, ease: [0.25, 0.46, 0.45, 0.94] }}
+                                        className="relative z-10 flex flex-col items-center gap-5 w-full h-full justify-center"
+                                    >
+                                        <div className="w-14 h-14 md:w-16 md:h-16 bg-zinc-900 rounded-2xl flex items-center justify-center shadow-lg shadow-zinc-900/20 mb-1">
+                                            <span className="font-display text-white text-xl md:text-2xl font-bold">B</span>
+                                        </div>
+                                        <h3 className="font-display text-xl md:text-2xl font-bold text-zinc-900 leading-tight">Get the App</h3>
+                                        <div className="bg-white p-3 md:p-4 rounded-2xl md:rounded-3xl shadow-xl shadow-zinc-200 border border-zinc-100">
+                                            <Image src={CAROUSEL_ITEMS[0].src} alt="QR" width={160} height={160} className="object-contain md:w-[180px] md:h-[180px]" />
+                                        </div>
+                                    </motion.div>
+                                ) : (
+                                    <motion.div
+                                        key={`image-${currentIndex}`}
+                                        initial={{ opacity: 0, y: 30, filter: 'blur(6px)' }}
+                                        animate={{ opacity: 1, y: 0, filter: 'blur(0px)' }}
+                                        exit={{ opacity: 0, y: -20, filter: 'blur(6px)' }}
+                                        transition={{ duration: 0.45, ease: [0.25, 0.46, 0.45, 0.94] }}
+                                        className="relative z-10 flex flex-col items-center justify-center w-full h-full"
+                                    >
+                                        <div className="relative w-full h-56 md:h-64 mb-4 md:mb-6">
+                                            <Image src={CAROUSEL_ITEMS[currentIndex].src} alt={CAROUSEL_ITEMS[currentIndex].alt || 'Service'} fill className="object-contain" />
+                                        </div>
+                                        <h3 className="font-display text-lg md:text-xl font-bold text-zinc-900 leading-tight mb-1 md:mb-2">
+                                            {CAROUSEL_ITEMS[currentIndex].alt}
+                                        </h3>
+                                        <p className="text-zinc-500 text-xs md:text-sm">Find the best local pros.</p>
+                                    </motion.div>
+                                )}
+                            </AnimatePresence>
+                        </div>
+                    </motion.div>
+                </div>
 
                 <div className="container max-w-7xl mx-auto px-5 sm:px-6 md:px-12 relative z-10 w-full h-full flex flex-col justify-center pointer-events-none">
 
@@ -128,65 +191,6 @@ export default function HeroSection() {
                         </motion.div>
                     </div>
 
-                    {/* Phone — Absolutely positioned, spring-smoothed animations */}
-                    <div className="absolute inset-0 flex items-center pointer-events-none">
-                        <motion.div
-                            style={{
-                                left: phoneLeft,
-                                x: phoneX,
-                                rotateY: phoneRotateY,
-                                scale: phoneScale,
-                                willChange: 'transform, left',
-                            }}
-                            className="absolute top-1/2 -translate-y-1/2 w-[280px] h-[560px] md:w-[300px] md:h-[600px] bg-zinc-900 rounded-[45px] md:rounded-[50px] border-[7px] md:border-[8px] border-zinc-800 shadow-2xl shadow-zinc-900/30 overflow-hidden z-20 group pointer-events-auto hidden lg:block"
-                        >
-                            {/* Notch */}
-                            <div className="absolute top-0 left-1/2 -translate-x-1/2 w-28 md:w-32 h-6 md:h-7 bg-black rounded-b-2xl z-20" />
-
-                            {/* Screen Content */}
-                            <div className="w-full h-full bg-zinc-50 relative overflow-hidden flex flex-col items-center justify-center p-5 md:p-6 text-center">
-                                <div className="absolute inset-0 bg-gradient-to-b from-zinc-900/5 to-transparent pointer-events-none" />
-
-                                <AnimatePresence mode="wait">
-                                    {CAROUSEL_ITEMS[currentIndex].type === 'qr' ? (
-                                        <motion.div
-                                            key="qr-view"
-                                            initial={{ opacity: 0, scale: 0.85, filter: 'blur(8px)' }}
-                                            animate={{ opacity: 1, scale: 1, filter: 'blur(0px)' }}
-                                            exit={{ opacity: 0, scale: 1.05, filter: 'blur(8px)' }}
-                                            transition={{ duration: 0.5, ease: [0.25, 0.46, 0.45, 0.94] }}
-                                            className="relative z-10 flex flex-col items-center gap-5 w-full h-full justify-center"
-                                        >
-                                            <div className="w-14 h-14 md:w-16 md:h-16 bg-zinc-900 rounded-2xl flex items-center justify-center shadow-lg shadow-zinc-900/20 mb-1">
-                                                <span className="font-display text-white text-xl md:text-2xl font-bold">B</span>
-                                            </div>
-                                            <h3 className="font-display text-xl md:text-2xl font-bold text-zinc-900 leading-tight">Get the App</h3>
-                                            <div className="bg-white p-3 md:p-4 rounded-2xl md:rounded-3xl shadow-xl shadow-zinc-200 border border-zinc-100">
-                                                <Image src={CAROUSEL_ITEMS[0].src} alt="QR" width={160} height={160} className="object-contain md:w-[180px] md:h-[180px]" />
-                                            </div>
-                                        </motion.div>
-                                    ) : (
-                                        <motion.div
-                                            key={`image-${currentIndex}`}
-                                            initial={{ opacity: 0, y: 30, filter: 'blur(6px)' }}
-                                            animate={{ opacity: 1, y: 0, filter: 'blur(0px)' }}
-                                            exit={{ opacity: 0, y: -20, filter: 'blur(6px)' }}
-                                            transition={{ duration: 0.45, ease: [0.25, 0.46, 0.45, 0.94] }}
-                                            className="relative z-10 flex flex-col items-center justify-center w-full h-full"
-                                        >
-                                            <div className="relative w-full h-56 md:h-64 mb-4 md:mb-6">
-                                                <Image src={CAROUSEL_ITEMS[currentIndex].src} alt={CAROUSEL_ITEMS[currentIndex].alt || 'Service'} fill className="object-contain" />
-                                            </div>
-                                            <h3 className="font-display text-lg md:text-xl font-bold text-zinc-900 leading-tight mb-1 md:mb-2">
-                                                {CAROUSEL_ITEMS[currentIndex].alt}
-                                            </h3>
-                                            <p className="text-zinc-500 text-xs md:text-sm">Find the best local pros.</p>
-                                        </motion.div>
-                                    )}
-                                </AnimatePresence>
-                            </div>
-                        </motion.div>
-                    </div>
 
                     <div className="grid grid-cols-1 lg:grid-cols-[1.5fr_1fr] gap-8 md:gap-12 lg:gap-20 items-center h-full pointer-events-none">
 
