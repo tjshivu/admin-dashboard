@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { Titillium_Web, Inter } from "next/font/google";
+import { Analytics } from "@vercel/analytics/next";
 import Header from "@/components/Header";
 import "./globals.css";
 
@@ -99,6 +100,7 @@ export default function RootLayout({
             })
           }}
         />
+        <Analytics />
       </body>
     </html>
   );
