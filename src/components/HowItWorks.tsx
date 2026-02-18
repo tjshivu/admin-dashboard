@@ -112,7 +112,7 @@ const ReviewCard = ({
     avatar: string;
 }) => {
     return (
-        <div className="w-[350px] mx-4 bg-white p-8 rounded-3xl shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-zinc-100 hover:shadow-[0_8px_30px_rgb(0,0,0,0.08)] transition-all duration-300 flex flex-col h-full justify-between group cursor-pointer">
+        <div className="w-[280px] sm:w-[350px] mx-3 sm:mx-4 bg-white p-6 sm:p-8 rounded-3xl shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-zinc-100 hover:shadow-[0_8px_30px_rgb(0,0,0,0.08)] transition-all duration-300 flex flex-col h-full justify-between group cursor-pointer">
             {/* Top Row: Stars & Google Logo */}
             <div className="flex justify-between items-start mb-6">
                 <div className="flex gap-1">
@@ -166,22 +166,22 @@ const ReviewCard = ({
  */
 export default function HowItWorks() {
     return (
-        <section className="py-24 md:py-32 bg-white border-t border-zinc-100 overflow-hidden">
+        <section className="py-16 md:py-24 lg:py-32 bg-white border-t border-zinc-100 overflow-hidden">
             <div className="w-full">
                 {/* Trust Psychology Section */}
-                <div className="mb-24 px-6 md:px-12">
+                <div className="mb-16 md:mb-24 px-4 sm:px-6 md:px-12">
                     <div className="text-center mb-16">
-                        <h2 className="font-display text-3xl md:text-4xl font-bold text-zinc-900 mb-4 tracking-tight">
+                        <h2 className="font-display text-2xl sm:text-3xl md:text-4xl font-bold text-zinc-900 mb-3 sm:mb-4 tracking-tight">
                             Built on Trust, Powered by Community.
                         </h2>
-                        <p className="text-zinc-500 max-w-2xl mx-auto text-lg">
+                        <p className="text-zinc-500 max-w-2xl mx-auto text-sm sm:text-base md:text-lg">
                             We use advanced verification and community-driven social proof to ensure you always hire with confidence.
                         </p>
                     </div>
 
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-8 max-w-5xl mx-auto">
-                        <div className="bg-zinc-50 p-6 md:p-8 rounded-3xl border border-zinc-100 flex flex-col items-center text-center">
-                            <div className="relative w-32 h-32 md:w-48 md:h-48 mb-4 md:mb-6">
+                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-4 md:gap-8 max-w-5xl mx-auto">
+                        <div className="bg-zinc-50 p-5 sm:p-6 md:p-8 rounded-2xl sm:rounded-3xl border border-zinc-100 flex flex-col items-center text-center">
+                            <div className="relative w-24 h-24 sm:w-32 sm:h-32 md:w-48 md:h-48 mb-3 sm:mb-4 md:mb-6">
                                 <Image
                                     src="/svg/Life in a city-amico.svg"
                                     alt="Verified Professionals"
@@ -190,11 +190,11 @@ export default function HowItWorks() {
                                     className="object-contain"
                                 />
                             </div>
-                            <h3 className="font-bold text-lg md:text-xl mb-2 md:mb-3">Verified Professionals</h3>
-                            <p className="text-zinc-500 text-sm md:text-base">Every pro undergoes a strict background check and trade verification process.</p>
+                            <h3 className="font-bold text-sm sm:text-lg md:text-xl mb-1 sm:mb-2 md:mb-3">Verified Professionals</h3>
+                            <p className="text-zinc-500 text-xs sm:text-sm md:text-base">Every pro undergoes a strict background check and trade verification process.</p>
                         </div>
-                        <div className="bg-zinc-50 p-6 md:p-8 rounded-3xl border border-zinc-100 flex flex-col items-center text-center">
-                            <div className="relative w-32 h-32 md:w-48 md:h-48 mb-4 md:mb-6">
+                        <div className="bg-zinc-50 p-5 sm:p-6 md:p-8 rounded-2xl sm:rounded-3xl border border-zinc-100 flex flex-col items-center text-center">
+                            <div className="relative w-24 h-24 sm:w-32 sm:h-32 md:w-48 md:h-48 mb-3 sm:mb-4 md:mb-6">
                                 <Image
                                     src="/svg/Conversation-pana.svg"
                                     alt="Authentic Reviews"
@@ -203,11 +203,11 @@ export default function HowItWorks() {
                                     className="object-contain"
                                 />
                             </div>
-                            <h3 className="font-bold text-lg md:text-xl mb-2 md:mb-3">Authentic Reviews</h3>
-                            <p className="text-zinc-500 text-sm md:text-base">Reviews are from real neighbors who have actually used the service.</p>
+                            <h3 className="font-bold text-sm sm:text-lg md:text-xl mb-1 sm:mb-2 md:mb-3">Authentic Reviews</h3>
+                            <p className="text-zinc-500 text-xs sm:text-sm md:text-base">Reviews are from real neighbors who have actually used the service.</p>
                         </div>
-                        <div className="bg-zinc-50 p-6 md:p-8 rounded-3xl border border-zinc-100 flex flex-col items-center text-center">
-                            <div className="relative w-32 h-32 md:w-48 md:h-48 mb-4 md:mb-6">
+                        <div className="bg-zinc-50 p-5 sm:p-6 md:p-8 rounded-2xl sm:rounded-3xl border border-zinc-100 flex flex-col items-center text-center">
+                            <div className="relative w-24 h-24 sm:w-32 sm:h-32 md:w-48 md:h-48 mb-3 sm:mb-4 md:mb-6">
                                 <Image
                                     src="/svg/Group Chat-cuate.svg"
                                     alt="Community Vetted"
@@ -216,21 +216,21 @@ export default function HowItWorks() {
                                     className="object-contain"
                                 />
                             </div>
-                            <h3 className="font-bold text-lg md:text-xl mb-2 md:mb-3">Community Vetted</h3>
-                            <p className="text-zinc-500 text-sm md:text-base">Services are constantly rated by your local community to maintain high standards.</p>
+                            <h3 className="font-bold text-sm sm:text-lg md:text-xl mb-1 sm:mb-2 md:mb-3">Community Vetted</h3>
+                            <p className="text-zinc-500 text-xs sm:text-sm md:text-base">Services are constantly rated by your local community to maintain high standards.</p>
                         </div>
                     </div>
                 </div>
 
                 {/* Most Used Services (Split Layout with Vertical Scroll) */}
-                <div className="mb-24 px-6 md:px-12">
-                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
+                <div className="mb-16 md:mb-24 px-4 sm:px-6 md:px-12">
+                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 md:gap-12 items-center">
                         {/* Left: Content */}
                         <div className="text-left">
                             <h2 className="font-display text-3xl md:text-4xl font-bold text-zinc-900 mb-6 leading-tight">
                                 Most Used Services
                             </h2>
-                            <p className="text-zinc-500 text-lg md:text-xl leading-relaxed mb-8">
+                            <p className="text-zinc-500 text-base sm:text-lg md:text-xl leading-relaxed mb-6 sm:mb-8">
                                 From quick repairs to major renovations, find the most trusted professionals for every home need in your area.
                             </p>
                             <button className="bg-zinc-900 text-white px-8 py-4 rounded-full font-bold hover:bg-zinc-800 transition-all flex items-center gap-2 group">
@@ -310,11 +310,11 @@ export default function HowItWorks() {
                         </div>
 
                         {/* Mobile Static View (Uber Style Grid) */}
-                        <div className="md:hidden grid grid-cols-3 gap-3 w-full">
+                        <div className="md:hidden grid grid-cols-2 xs:grid-cols-3 gap-2 sm:gap-3 w-full">
                             {[...SERVICES_COL1, ...SERVICES_COL2].slice(0, 6).map((service, i) => (
-                                <div key={i} className="flex flex-col items-center justify-center p-3 bg-zinc-50 rounded-2xl border border-zinc-100 aspect-square shadow-sm active:scale-95 transition-transform cursor-pointer">
-                                    <span className="text-3xl mb-2 filter drop-shadow-sm">{service.icon}</span>
-                                    <span className="text-[11px] font-bold text-zinc-900 text-center leading-tight tracking-tight">{service.name}</span>
+                                <div key={i} className="flex flex-col items-center justify-center p-2 sm:p-3 bg-zinc-50 rounded-xl sm:rounded-2xl border border-zinc-100 aspect-square shadow-sm active:scale-95 transition-transform cursor-pointer">
+                                    <span className="text-2xl sm:text-3xl mb-1 sm:mb-2 filter drop-shadow-sm">{service.icon}</span>
+                                    <span className="text-[10px] sm:text-[11px] font-bold text-zinc-900 text-center leading-tight tracking-tight">{service.name}</span>
                                 </div>
                             ))}
                         </div>
@@ -322,9 +322,9 @@ export default function HowItWorks() {
                 </div>
 
                 {/* Top Rated Professionals (Marquee Reverse / Right to Left) */}
-                <div className="mb-24">
+                <div className="mb-16 md:mb-24">
                     <div className="px-6 md:px-12 mb-8">
-                        <h2 className="font-display text-2xl md:text-3xl font-bold text-zinc-900">Top Rated Professionals</h2>
+                        <h2 className="font-display text-xl sm:text-2xl md:text-3xl font-bold text-zinc-900">Top Rated Professionals</h2>
                     </div>
                     <div className="relative flex w-full flex-col items-center justify-center overflow-hidden">
                         <Marquee reverse pauseOnHover className="[--duration:30s]">
@@ -361,8 +361,8 @@ export default function HowItWorks() {
                 </div>
 
                 {/* Header */}
-                <div className="mb-12 flex flex-col items-start text-left px-6">
-                    <h2 className="font-display text-3xl md:text-4xl font-bold text-zinc-900 mb-4 tracking-tight">
+                <div className="mb-8 sm:mb-12 flex flex-col items-start text-left px-4 sm:px-6">
+                    <h2 className="font-display text-2xl sm:text-3xl md:text-4xl font-bold text-zinc-900 mb-3 sm:mb-4 tracking-tight">
                         Loved by locals
                     </h2>
                     <p className="text-sm md:text-base text-zinc-500 max-w-lg font-normal">
@@ -387,7 +387,7 @@ export default function HowItWorks() {
                 </div>
 
                 {/* Mobile Static Reviews (Side by Side) */}
-                <div className="md:hidden w-full overflow-x-auto snap-x snap-mandatory flex gap-4 px-6 pb-8 no-scrollbar">
+                <div className="md:hidden w-full overflow-x-auto snap-x snap-mandatory flex gap-3 sm:gap-4 px-4 sm:px-6 pb-6 sm:pb-8 no-scrollbar">
                     {reviews.map((review, i) => {
                         // Matte Pop Colors Cycle
                         const colors = [
@@ -404,7 +404,7 @@ export default function HowItWorks() {
                             <div
                                 key={review.id}
                                 className={cn(
-                                    "min-w-[280px] md:min-w-[350px] snap-center rounded-[2rem] p-6 md:p-8 border flex flex-col justify-between h-[280px] md:h-[320px]", // Fixed height for alignment
+                                    "min-w-[240px] sm:min-w-[280px] md:min-w-[350px] snap-center rounded-2xl sm:rounded-[2rem] p-5 sm:p-6 md:p-8 border flex flex-col justify-between h-[250px] sm:h-[280px] md:h-[320px]",
                                     colorClass
                                 )}
                             >

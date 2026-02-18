@@ -13,7 +13,7 @@ import Link from 'next/link';
 export default function Footer() {
     return (
         <footer className="relative bg-zinc-950 border-t border-zinc-900 pt-12 md:pt-16 pb-0 overflow-hidden text-center">
-            <div className="max-w-7xl mx-auto px-6 md:px-12 flex flex-col md:flex-row justify-between mb-12 gap-12 md:gap-8 relative z-10 text-left">
+            <div className="max-w-7xl mx-auto px-4 sm:px-6 md:px-12 flex flex-col md:flex-row justify-between mb-10 sm:mb-12 gap-8 md:gap-8 relative z-10 text-left">
                 {/* Brand & Newsletter */}
                 <div className="max-w-xs">
                     <h3 className="font-display text-lg md:text-xl font-medium text-white mb-3">Get updates</h3>
@@ -50,6 +50,18 @@ export default function Footer() {
                             ))}
                         </ul>
                     </div>
+                    <div className="col-span-2 md:hidden flex gap-4 mt-2">
+                        {[
+                            { icon: Twitter, name: 'Twitter' },
+                            { icon: Instagram, name: 'Instagram' },
+                            { icon: Linkedin, name: 'LinkedIn' },
+                            { icon: Facebook, name: 'Facebook' }
+                        ].map(item => (
+                            <Link key={item.name} href="#" className="text-zinc-500 hover:text-white transition-colors">
+                                <item.icon size={18} />
+                            </Link>
+                        ))}
+                    </div>
                     <div className="hidden md:block">
                         <h4 className="font-semibold text-white mb-3 uppercase text-[10px] md:text-xs tracking-wider">Social</h4>
                         <ul className="space-y-2 text-zinc-500 text-xs md:text-sm">
@@ -70,14 +82,14 @@ export default function Footer() {
             </div>
 
             {/* Large Watermark */}
-            <div className="w-full flex justify-center items-end opacity-20 pointer-events-none select-none overflow-hidden pt-12 md:pt-0">
-                <h1 className="text-[25vw] font-bold tracking-tighter text-white leading-[0.8]">
+            <div className="w-full flex justify-center items-end opacity-20 pointer-events-none select-none overflow-hidden pt-8 sm:pt-12 md:pt-0">
+                <h1 className="text-[18vw] sm:text-[22vw] md:text-[25vw] font-bold tracking-tighter text-white leading-[0.8]">
                     BRIKUP
                 </h1>
             </div>
 
             {/* Bottom Bar */}
-            <div className="w-full max-w-7xl mx-auto px-6 md:px-12 flex flex-col md:flex-row justify-between items-center py-6 border-t border-zinc-900/50 relative z-10 bg-zinc-950">
+            <div className="w-full max-w-7xl mx-auto px-4 sm:px-6 md:px-12 flex flex-col md:flex-row justify-between items-center py-4 sm:py-6 border-t border-zinc-900/50 relative z-10 bg-zinc-950">
                 <p className="text-zinc-600 text-xs mb-4 md:mb-0">
                     &copy; 2026 BrikUp Inc. All rights reserved.
                 </p>
