@@ -49,6 +49,7 @@ export default function HealthPage() {
     }
 
     const logs = health?.logs || []
+    const isDbConnected = !!health?.logs || health?.database?.readyState === 1
 
     return (
         <PageContainer>
@@ -62,112 +63,77 @@ export default function HealthPage() {
                 }
             />
 
-            <GridSystem cols={3} className="mb-8">
-                <Card className="bg-white dark:bg-neutral-900 border-slate-200 dark:border-neutral-800 shadow-sm rounded-xl">
-                    <CardContent className="p-6 flex flex-col justify-between h-full">
-                        <div className="flex justify-between items-start mb-4">
-                            <span className="text-sm font-semibold text-slate-500 dark:text-neutral-400 uppercase tracking-widest">Server Uptime</span>
-                            <Server className="h-5 w-5 text-violet-500" />
-                        </div>
-                        <div>
-                            <div className="text-3xl font-black text-slate-900 dark:text-white tracking-tight">
-                                {health?.server?.uptime ? formatUptime(health.server.uptime) : '—'}
+            <div className="max-w-xl mx-auto mb-12">
+                <Card className="bg-white dark:bg-neutral-900 border-slate-200 dark:border-neutral-800 shadow-sm rounded-xl overflow-hidden">
+                    <CardContent className="p-8 flex flex-col items-center text-center">
+                        <div className="flex flex-col items-center mb-6">
+                            <div className={cn(
+                                "p-4 rounded-full mb-4",
+                                isDbConnected ? "bg-green-100 dark:bg-green-900/30 text-green-600 dark:text-green-500" : "bg-red-100 dark:bg-red-900/30 text-red-600 dark:text-red-500"
+                            )}>
+                                <Database className="h-8 w-8" />
                             </div>
-                            <p className="text-sm text-green-600 dark:text-green-500 font-semibold mt-1 flex items-center gap-1">
-                                <span className="h-2 w-2 rounded-full bg-green-500 animate-pulse"></span> Online
-                            </p>
+                            <span className="text-xs font-bold text-slate-500 dark:text-neutral-400 uppercase tracking-widest">Database Connectivity</span>
                         </div>
-                    </CardContent>
-                </Card>
 
-                <Card className="bg-white dark:bg-neutral-900 border-slate-200 dark:border-neutral-800 shadow-sm rounded-xl">
-                    <CardContent className="p-6 flex flex-col justify-between h-full">
-                        <div className="flex justify-between items-start mb-4">
-                            <span className="text-sm font-semibold text-slate-500 dark:text-neutral-400 uppercase tracking-widest">Database</span>
-                            <Database className="h-5 w-5 text-violet-500" />
+                        <div className={cn(
+                            "text-4xl font-black tracking-tight mb-2",
+                            isDbConnected ? 'text-green-600 dark:text-green-500' : 'text-red-600 dark:text-red-500'
+                        )}>
+                            {isDbConnected ? 'Connected' : 'Disconnected'}
                         </div>
-                        <div>
-                            <div className={cn("text-3xl font-black tracking-tight", health?.database?.readyState === 1 ? 'text-slate-900 dark:text-white' : 'text-red-600 dark:text-red-500')}>
-                                {health?.database?.readyState === 1 ? 'Connected' : 'Disconnected'}
-                            </div>
-                            <p className="text-sm text-slate-500 dark:text-neutral-400 font-semibold mt-1">MongoDB Status: {health?.database?.status || 'N/A'}</p>
-                        </div>
+                        <p className="text-sm text-slate-500 dark:text-neutral-400 font-medium">
+                            MongoDB Cluster: {health?.database?.status || (isDbConnected ? 'Operational' : 'Unknown')}
+                        </p>
                     </CardContent>
+                    {isDbConnected && (
+                        <div className="bg-green-500 h-1.5 w-full"></div>
+                    )}
                 </Card>
+            </div>
 
-                <Card className="bg-white dark:bg-neutral-900 border-slate-200 dark:border-neutral-800 shadow-sm rounded-xl">
-                    <CardContent className="p-6 flex flex-col justify-between h-full">
-                        <div className="flex justify-between items-start mb-4">
-                            <span className="text-sm font-semibold text-slate-500 dark:text-neutral-400 uppercase tracking-widest">Heap Usage</span>
-                            <Activity className="h-5 w-5 text-violet-500" />
-                        </div>
-                        <div>
-                            <div className="text-3xl font-black text-slate-900 dark:text-white tracking-tight">
-                                {health?.server?.memoryUsage?.heapUsed ? formatMB(health.server.memoryUsage.heapUsed) : '—'}
-                            </div>
-                            <p className="text-sm text-slate-500 dark:text-neutral-400 font-semibold mt-1">
-                                of {health?.server?.memoryUsage?.heapTotal ? formatMB(health.server.memoryUsage.heapTotal) : '—'} total
-                            </p>
-                        </div>
-                    </CardContent>
-                </Card>
-            </GridSystem>
-
-            <div className="mb-4">
+            <div className="mb-6">
                 <h3 className="text-lg font-bold text-slate-900 dark:text-white flex items-center gap-2">
                     <Activity className="h-5 w-5 text-violet-500" />
-                    System Diagnostics
+                    Service Activity Logs
                 </h3>
             </div>
 
-            <GridSystem cols={3} className="mb-8">
-                {/* Runtime Details */}
+            <div className="mb-8">
                 <Card className="bg-white dark:bg-neutral-900 border-slate-200 dark:border-neutral-800 shadow-sm">
                     <CardContent className="p-6">
-                        <h4 className="text-sm font-bold text-slate-900 dark:text-white mb-4 border-b dark:border-neutral-800 pb-2">Runtime Details</h4>
-                        <div className="space-y-3 text-sm">
-                            <div className="flex justify-between">
-                                <span className="text-slate-500 dark:text-neutral-400">Platform</span>
-                                <span className="font-medium text-slate-900 dark:text-white capitalize">{health?.server?.platform || '—'}</span>
-                            </div>
-                            <div className="flex justify-between">
-                                <span className="text-slate-500 dark:text-neutral-400">DB Ready State</span>
-                                <span className="font-medium text-slate-900 dark:text-white">{health?.database?.readyState ?? '—'}</span>
-                            </div>
+                        <div className="flex justify-between items-center mb-4 border-b dark:border-neutral-800 pb-2">
+                            <h4 className="text-sm font-bold text-slate-900 dark:text-white">Recent Activity Summary</h4>
+                            <span className="text-xs text-slate-400 font-medium">{logs.length} logs in period</span>
                         </div>
-                    </CardContent>
-                </Card>
-
-                {/* Memory Breakdown */}
-                <Card className="bg-white dark:bg-neutral-900 border-slate-200 dark:border-neutral-800 shadow-sm">
-                    <CardContent className="p-6">
-                        <h4 className="text-sm font-bold text-slate-900 dark:text-white mb-4 border-b dark:border-neutral-800 pb-2">Memory Breakdown</h4>
-                        <div className="space-y-3 text-sm">
-                            {health?.server?.memoryUsage && Object.entries(health.server.memoryUsage).map(([key, val]: [string, any]) => (
-                                <div key={key} className="flex justify-between">
-                                    <span className="text-slate-500 dark:text-neutral-400 capitalize">{key.replace(/([A-Z])/g, ' $1')}</span>
-                                    <span className="font-medium text-slate-900 dark:text-white">{formatMB(val)}</span>
+                        <div className="space-y-4">
+                            {logs.length > 0 ? (
+                                <div className="pt-2">
+                                    <span className="text-xs text-slate-400 dark:text-neutral-500 block mb-2 uppercase font-bold tracking-tight">Latest System Event</span>
+                                    <div className="p-4 bg-slate-50 dark:bg-neutral-950/50 rounded-lg border border-slate-100 dark:border-neutral-800">
+                                        <p className="text-sm text-slate-700 dark:text-neutral-300 leading-relaxed italic">
+                                            "{logs[0]?.message}"
+                                        </p>
+                                        <div className="mt-3 flex items-center gap-3">
+                                            <span className={cn(
+                                                "px-2 py-0.5 rounded text-[10px] font-bold uppercase",
+                                                logs[0]?.level === 'error' ? "bg-red-100 text-red-700" : "bg-blue-100 text-blue-700"
+                                            )}>
+                                                {logs[0]?.level || 'info'}
+                                            </span>
+                                            <span className="text-[10px] text-slate-400 font-mono">
+                                                {logs[0]?.service || 'system'}
+                                            </span>
+                                        </div>
+                                    </div>
                                 </div>
-                            ))}
+                            ) : (
+                                <p className="text-sm text-slate-500 italic text-center py-4">No recent logs available</p>
+                            )}
                         </div>
                     </CardContent>
                 </Card>
-
-                {/* Log Summary */}
-                <Card className="bg-white dark:bg-neutral-900 border-slate-200 dark:border-neutral-800 shadow-sm">
-                    <CardContent className="p-6">
-                        <h4 className="text-sm font-bold text-slate-900 dark:text-white mb-4 border-b dark:border-neutral-800 pb-2">Log Summary</h4>
-                        <div className="space-y-3 text-sm">
-                            <div className="pt-2">
-                                <span className="text-xs text-slate-400 dark:text-neutral-500 block mb-1 uppercase font-bold tracking-tight">Latest Log Message</span>
-                                <p className="text-xs text-slate-600 dark:text-neutral-300 line-clamp-2 italic">
-                                    {logs[0]?.message || "No recent logs available"}
-                                </p>
-                            </div>
-                        </div>
-                    </CardContent>
-                </Card>
-            </GridSystem>
+            </div>
 
             <Card className="bg-white dark:bg-neutral-900 border-slate-200 dark:border-neutral-800 shadow-sm rounded-xl overflow-hidden mb-8">
                 <div className="p-4 border-b border-slate-100 dark:border-neutral-800 bg-slate-50/50 dark:bg-neutral-950/20 flex justify-between items-center">

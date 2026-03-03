@@ -87,16 +87,16 @@ export default function ReviewsPage() {
         setSelectedReview(null)
         setSelectedReport(null)
         try {
-            if (viewMode === "all" || viewMode === "ai_flagged") {
-                const res = await get<Review[]>("/reviews/admin/list")
-                if (res && res.success && res.data) {
-                    setReviews(res.data)
-                }
-            } else {
-                const res = await get<ReviewReport[]>("/admin/reviews/flagged")
-                if (res && res.success && res.data) {
-                    setReports(res.data)
-                }
+            // Always fetch both to keep badge counts accurate across all tabs
+            const [reviewsRes, reportsRes] = await Promise.all([
+                get<Review[]>("/reviews/admin/list"),
+                get<ReviewReport[]>("/admin/reviews/flagged")
+            ])
+            if (reviewsRes?.success && reviewsRes.data) {
+                setReviews(reviewsRes.data)
+            }
+            if (reportsRes?.success && reportsRes.data) {
+                setReports(reportsRes.data)
             }
         } catch (e) {
             console.error(e)
@@ -170,11 +170,32 @@ export default function ReviewsPage() {
             <SectionHeader
                 title="Review Moderation"
                 action={
-                    <Tabs value={viewMode} onValueChange={(v) => setViewMode(v as "all" | "flagged" | "ai_flagged")} className="w-[400px]">
+                    <Tabs value={viewMode} onValueChange={(v) => setViewMode(v as "all" | "flagged" | "ai_flagged")} className="w-[450px]">
                         <TabsList className="grid w-full grid-cols-3 bg-slate-100 dark:bg-neutral-800 p-1 rounded-lg">
-                            <TabsTrigger value="all" className="rounded-md data-[state=active]:bg-white dark:data-[state=active]:bg-neutral-900 data-[state=active]:shadow-sm dark:text-neutral-400 dark:data-[state=active]:text-white">All</TabsTrigger>
-                            <TabsTrigger value="flagged" className="rounded-md data-[state=active]:bg-white dark:data-[state=active]:bg-neutral-900 data-[state=active]:shadow-sm dark:text-neutral-400 dark:data-[state=active]:text-white">Reports</TabsTrigger>
-                            <TabsTrigger value="ai_flagged" className="rounded-md data-[state=active]:bg-white dark:data-[state=active]:bg-neutral-900 data-[state=active]:shadow-sm dark:text-neutral-400 dark:data-[state=active]:text-white">AI Flagged</TabsTrigger>
+                            <TabsTrigger value="all" className="rounded-md data-[state=active]:bg-white dark:data-[state=active]:bg-neutral-900 data-[state=active]:shadow-sm dark:text-neutral-400 dark:data-[state=active]:text-white relative inline-flex items-center gap-1.5 px-3">
+                                All
+                                {reviews.length > 0 && (
+                                    <span className="inline-flex items-center justify-center w-5 h-5 rounded-full bg-slate-700 dark:bg-neutral-600 text-white text-[10px] font-bold leading-none">
+                                        {reviews.length > 99 ? "99+" : reviews.length}
+                                    </span>
+                                )}
+                            </TabsTrigger>
+                            <TabsTrigger value="flagged" className="rounded-md data-[state=active]:bg-white dark:data-[state=active]:bg-neutral-900 data-[state=active]:shadow-sm dark:text-neutral-400 dark:data-[state=active]:text-white relative inline-flex items-center gap-1.5 px-3">
+                                Reports
+                                {reports.length > 0 && (
+                                    <span className="inline-flex items-center justify-center w-5 h-5 rounded-full bg-red-600 text-white text-[10px] font-bold leading-none">
+                                        {reports.length > 99 ? "99+" : reports.length}
+                                    </span>
+                                )}
+                            </TabsTrigger>
+                            <TabsTrigger value="ai_flagged" className="rounded-md data-[state=active]:bg-white dark:data-[state=active]:bg-neutral-900 data-[state=active]:shadow-sm dark:text-neutral-400 dark:data-[state=active]:text-white relative inline-flex items-center gap-1.5 px-3">
+                                AI Flagged
+                                {reviews.filter(r => r.ai_flagged).length > 0 && (
+                                    <span className="inline-flex items-center justify-center w-5 h-5 rounded-full bg-orange-500 text-white text-[10px] font-bold leading-none">
+                                        {reviews.filter(r => r.ai_flagged).length > 99 ? "99+" : reviews.filter(r => r.ai_flagged).length}
+                                    </span>
+                                )}
+                            </TabsTrigger>
                         </TabsList>
                     </Tabs>
                 }
@@ -316,7 +337,11 @@ export default function ReviewsPage() {
                                                 <FileText className="h-4 w-4 text-slate-500 dark:text-neutral-300" />
                                             </div>
                                             <p className="text-sm text-slate-700 dark:text-neutral-200 leading-relaxed mt-2">
-                                                &quot;{selectedReview.comment || "No written comment provided."}&quot;
+                                                {selectedReview.comment
+                                                    ? <>&quot;{selectedReview.comment}&quot;</> : selectedReport?.description
+                                                        ? <span className="italic text-slate-500 dark:text-neutral-400">Reporter context: &quot;{selectedReport.description}&quot;</span>
+                                                        : <span className="italic text-slate-400">No written comment provided.</span>
+                                                }
                                             </p>
                                             {selectedReview.images && selectedReview.images.length > 0 && (
                                                 <div className="flex gap-3 mt-6 pt-6 border-t border-slate-100 dark:border-neutral-700 overflow-x-auto pb-2">
@@ -399,10 +424,6 @@ export default function ReviewsPage() {
                                             <div className="flex gap-2 text-sm">
                                                 <span className="font-semibold text-slate-900 min-w-[100px]">Rule Broken:</span>
                                                 <Badge variant="danger" className="uppercase tracking-tight shadow-none">{selectedReport.reason}</Badge>
-                                            </div>
-                                            <div className="flex gap-2 text-sm">
-                                                <span className="font-semibold text-slate-900 min-w-[100px]">Context:</span>
-                                                <span className="text-slate-700 italic">{selectedReport.description || "No context provided by user."}</span>
                                             </div>
                                         </div>
 

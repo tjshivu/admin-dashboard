@@ -10,9 +10,10 @@ export function useLiveAnalytics() {
     return useQuery<SnapshotData>({
         queryKey: ['live-analytics-today'],
         queryFn: fetchLiveTodayAnalytics,
-        refetchInterval: 10 * 60 * 1000,   // 10 minutes
-        staleTime: 60 * 10 * 1000,       // 10 minutes cache
-        refetchOnWindowFocus: true,
+        refetchInterval: 10 * 60 * 1000,  // polling
+        staleTime: 5 * 60 * 1000,         // live
+        refetchOnWindowFocus: false,
+        refetchOnReconnect: true,          // reconnect
         retry: false
     })
 }

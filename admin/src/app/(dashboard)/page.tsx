@@ -15,6 +15,7 @@ import {
     useOperationalInsights,
     useIntentAnalytics
 } from "@/hooks/use-analytics-hooks"
+import { useLiveAnalytics } from "@/hooks/use-live-analytics" // live
 import { DashboardSummary } from "@/types/analytics"
 
 // Helper to format numbers
@@ -60,6 +61,9 @@ export default function DashboardPage() {
     return (
         <PageContainer>
             <SectionHeader title="Overview" />
+
+            {/* Section 0: LIVE KPI STRIP */}
+            <LiveKPIStrip />
 
             {/* Section 1: KPI STRATEGIC ROW */}
             <GridSystem cols={5}>
@@ -430,6 +434,91 @@ function KPICard({ title, value, status, onClick }: { title: string, value: stri
                 {status && (
                     <span className="text-sm text-violet-600 dark:text-violet-400 font-medium block">{status}</span>
                 )}
+            </CardContent>
+        </Card>
+    )
+}
+
+// --- Live KPI Strip ---
+
+function LiveKPIStrip() {
+    const { data, isLoading } = useLiveAnalytics()
+
+    // status
+    const isLive = !data?.status || data.status === 'live'
+
+    return (
+        <div className="mb-8">
+            <div className="flex items-center gap-3 mb-3">
+                <h3 className="text-xs font-bold text-slateate-500 dark:text-neutral-400 uppercase tracking-widest">
+                    Real-Time Platform
+                </h3>
+                {/* badge */}
+                <span className={`inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-tight border ${isLive
+                    ? 'bg-rose-50 border-rose-100 text-rose-600 dark:bg-rose-950/30 dark:border-rose-900 dark:text-rose-400'
+                    : 'bg-slate-100 border-slate-200 text-slate-500 dark:bg-neutral-800 dark:border-neutral-700 dark:text-neutral-400'
+                    }`}>
+                    <span className={`w-1.5 h-1.5 rounded-full ${isLive ? 'bg-rose-500 animate-pulse' : 'bg-slate-400'}`} />
+                    {isLive ? 'Live' : 'Finalized'}
+                </span>
+                <div className="h-px flex-1 bg-slate-100 dark:bg-neutral-800" />
+            </div>
+
+            {/* stats row */}
+            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
+                <LiveKPIStat
+                    label="DAU"
+                    value={isLoading ? '...' : formatNum(data?.dau || 0)}
+                    sub="Active users today"
+                />
+                <LiveKPIStat
+                    label="Bookings"
+                    value={isLoading ? '...' : formatNum(data?.bookings || 0)}
+                    sub="Created today"
+                />
+                <LiveKPIStat
+                    label="Conversion"
+                    value={isLoading ? '...' : `${((data?.conversionRate || 0) * 100).toFixed(1)}%`}
+                    sub="Search → Booking"
+                />
+                <LiveKPIStat
+                    label="Avg Trust"
+                    value={isLoading ? '...' : `${(data?.avgProviderTrustScore || 0).toFixed(1)}`}
+                    sub="Provider score"
+                />
+                <LiveKPIStat
+                    label="Resolution"
+                    value={isLoading ? '...' : `${((data?.complaintResolutionRate || 0) * 100).toFixed(1)}%`}
+                    sub="Complaint rate"
+                />
+                <LiveKPIStat
+                    label="In Decay"
+                    value={isLoading ? '...' : formatNum(data?.providersInDecay || 0)}
+                    sub="Providers flagged"
+                    danger={Boolean(data && (data.providersInDecay || 0) > 0)}
+                />
+            </div>
+        </div>
+    )
+}
+
+function LiveKPIStat({
+    label, value, sub, danger = false
+}: {
+    label: string; value: string; sub: string; danger?: boolean;
+}) {
+    return (
+        <Card className="border-slate-200 dark:border-neutral-800 bg-white dark:bg-neutral-900">
+            <CardContent className="p-4">
+                <span className="text-[10px] font-black uppercase tracking-widest text-slate-400 dark:text-neutral-500 block mb-1">
+                    {label}
+                </span>
+                {/* value */}
+                <span className={`text-xl font-black block mb-0.5 ${danger ? 'text-rose-600 dark:text-rose-400' : 'text-slate-900 dark:text-white'
+                    }`}>
+                    {value}
+                </span>
+                <span className="text-[10px] font-medium text-slate-400 dark:text-neutral-500">{sub}</span>
             </CardContent>
         </Card>
     )

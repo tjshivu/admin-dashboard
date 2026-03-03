@@ -1,13 +1,14 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 "use client"
 
-import { useEffect, useState } from "react"
+import React, { useEffect, useState } from "react"
 import { useQuery } from "@tanstack/react-query"
 import { get, patch, post, logAdminAction } from "@/lib/api"
+import { useTrustTrendGraphic } from "@/hooks/use-analytics-hooks" // trend
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
-import { X, Search, Filter, Download } from "lucide-react"
+import { X, Search, Download, FileText } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { useToast } from "@/components/providers/toast-provider"
 import { PageContainer } from "@/components/ui/page-container"
@@ -42,6 +43,10 @@ interface Provider {
     category: any
     status: string
     trust_status?: string
+    onboardingStep?: string
+    active?: boolean
+    searchable?: boolean
+    hygiene_checklist?: string[]
     createdAt: string
     deletedAt?: string
     deletedReason?: string
@@ -57,35 +62,17 @@ export default function ProvidersPage() {
     const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set())
     const [selectedProvider, setSelectedProvider] = useState<Provider | null>(null)
     const [detailTab, setDetailTab] = useState("Basic Info")
+    const [searchQuery, setSearchQuery] = useState("")
     const { showToast } = useToast()
 
-    const [leftWidth, setLeftWidth] = useState(50)
-    const [isResizing, setIsResizing] = useState(false)
-
+    // Close drawer on Escape key
     useEffect(() => {
-        const handleMouseMove = (e: MouseEvent) => {
-            if (!isResizing) return
-            const newLeftWidth = (e.clientX / window.innerWidth) * 100
-            if (newLeftWidth >= 30 && newLeftWidth <= 70) {
-                setLeftWidth(newLeftWidth)
-            }
+        const handleKeyDown = (e: KeyboardEvent) => {
+            if (e.key === 'Escape') setSelectedProvider(null)
         }
-        const handleMouseUp = () => {
-            setIsResizing(false)
-            document.body.style.cursor = 'default'
-        }
-
-        if (isResizing) {
-            window.addEventListener('mousemove', handleMouseMove)
-            window.addEventListener('mouseup', handleMouseUp)
-            document.body.style.cursor = 'col-resize'
-        }
-        return () => {
-            window.removeEventListener('mousemove', handleMouseMove)
-            window.removeEventListener('mouseup', handleMouseUp)
-            document.body.style.cursor = 'default'
-        }
-    }, [isResizing])
+        window.addEventListener('keydown', handleKeyDown)
+        return () => window.removeEventListener('keydown', handleKeyDown)
+    }, [])
 
     const loadProviders = async () => {
         setLoading(true)
@@ -112,72 +99,25 @@ export default function ProvidersPage() {
 
     const [actionLoading, setActionLoading] = useState(false)
     const [detailLoading, setDetailLoading] = useState(false)
-    const [trustData, setTrustData] = useState<any>(null)
-    const [trustHistory, setTrustHistory] = useState<any[]>([])
-    const [trustLoading, setTrustLoading] = useState(false)
     const [providerServices, setProviderServices] = useState<any[]>([])
     const [servicesLoading, setServicesLoading] = useState(false)
-    const [categoriesMap, setCategoriesMap] = useState<Record<string, any>>({})
-    const [subCategoriesMap, setSubCategoriesMap] = useState<Record<string, any>>({})
-
-    useEffect(() => {
-        if (!selectedProvider?._id) {
-            setTrustData(null)
-            setTrustHistory([])
-            return
-        }
-
-        const fetchTrust = async () => {
-            setTrustLoading(true)
-            try {
-                const [trustRes, historyRes] = await Promise.all([
-                    get<any>(`/analytics/provider/${selectedProvider._id}/trust`),
-                    get<any>(`/analytics/provider/${selectedProvider._id}/trust-history`)
-                ])
-                if (trustRes?.success) setTrustData(trustRes.data)
-                if (historyRes?.success) setTrustHistory(historyRes.data)
-            } catch (e) {
-                console.error("Failed to fetch trust data", e)
-            } finally {
-                setTrustLoading(false)
-            }
-        }
-        fetchTrust()
-    }, [selectedProvider?._id])
 
     useEffect(() => {
         if (!selectedProvider?._id || detailTab !== "Services") {
             return
         }
-        const fetchServicesAndTaxonomy = async () => {
+        const fetchServices = async () => {
             setServicesLoading(true)
             try {
-                const [servicesRes, catsRes, subCatsRes] = await Promise.all([
-                    get<any>(`/services/provider/${selectedProvider._id}`),
-                    get<any>("/categories"),
-                    get<any>("/sub-categories")
-                ])
-
+                const servicesRes = await get<any>(`/admin/providers/${selectedProvider._id}/services`)
                 if (servicesRes?.success) setProviderServices(servicesRes.data || [])
-
-                if (catsRes?.success && Array.isArray(catsRes.data)) {
-                    const cMap: Record<string, any> = {}
-                    catsRes.data.forEach((c: any) => cMap[c._id] = c)
-                    setCategoriesMap(cMap)
-                }
-
-                if (subCatsRes?.success && Array.isArray(subCatsRes.data)) {
-                    const sMap: Record<string, any> = {}
-                    subCatsRes.data.forEach((s: any) => sMap[s._id] = s)
-                    setSubCategoriesMap(sMap)
-                }
             } catch (e) {
                 console.error("Failed to fetch services", e)
             } finally {
                 setServicesLoading(false)
             }
         }
-        fetchServicesAndTaxonomy()
+        fetchServices()
     }, [selectedProvider?._id, detailTab])
 
     const fetchProviderDetail = async (id: string) => {
@@ -273,12 +213,31 @@ export default function ProvidersPage() {
 
     const tabs = ["All Providers", "Active", "Pending", "Suspended"]
 
-    const filteredProviders = providers.filter(p => {
-        if (activeTab === "Active") return p.status === "active"
-        if (activeTab === "Pending") return p.status === "pending"
-        if (activeTab === "Suspended") return p.status === "suspended"
+    // Tab filter maps to trust_status values from backend
+    const tabFilteredProviders = providers.filter(p => {
+        if (activeTab === "Active") return p.trust_status === "VERIFIED" || p.trust_status === "TRUSTED"
+        if (activeTab === "Pending") return p.trust_status === "PENDING_VERIFICATION" || p.trust_status === "UNLISTED"
+        if (activeTab === "Suspended") return p.trust_status === "SUSPENDED" || p.trust_status === "REJECTED"
         return true
     })
+
+    // Search filter on name, email, phone
+    const q = searchQuery.trim().toLowerCase()
+    const filteredProviders = q
+        ? tabFilteredProviders.filter(p =>
+            (p.name || "").toLowerCase().includes(q) ||
+            (p.email || "").toLowerCase().includes(q) ||
+            (p.phone || "").toLowerCase().includes(q)
+        )
+        : tabFilteredProviders
+
+    // Tab counts
+    const tabCounts: Record<string, number> = {
+        "All Providers": providers.length,
+        "Active": providers.filter(p => p.trust_status === "VERIFIED" || p.trust_status === "TRUSTED").length,
+        "Pending": providers.filter(p => p.trust_status === "PENDING_VERIFICATION" || p.trust_status === "UNLISTED").length,
+        "Suspended": providers.filter(p => p.trust_status === "SUSPENDED" || p.trust_status === "REJECTED").length,
+    }
 
     const handleSelectAll = (checked: boolean) => {
         if (checked) {
@@ -295,42 +254,81 @@ export default function ProvidersPage() {
         setSelectedIds(newSet)
     }
 
+    const exportCSV = () => {
+        const rows = filteredProviders
+        if (rows.length === 0) {
+            showToast({ type: "warning", message: "No providers to export." })
+            return
+        }
+        const headers = ["Name", "Email", "Phone", "Trust Status", "Onboarding Step", "Joined Date"]
+        const csvRows = [
+            headers.join(","),
+            ...rows.map(p => [
+                `"${(p.name || "").replace(/"/g, '""')}"`,
+                `"${(p.email || "").replace(/"/g, '""')}"`,
+                `"${(p.phone || "").replace(/"/g, '""')}"`,
+                `"${p.trust_status || ""}"`,
+                `"${(p.onboardingStep || "").replace(/_/g, ' ')}"`,
+                `"${new Date(p.createdAt).toLocaleDateString('en-GB')}"`
+            ].join(","))
+        ].join("\n")
+        const blob = new Blob([csvRows], { type: "text/csv;charset=utf-8;" })
+        const url = URL.createObjectURL(blob)
+        const a = document.createElement("a")
+        a.href = url
+        a.download = `providers_${activeTab.toLowerCase().replace(/ /g, "_")}_${new Date().toISOString().slice(0, 10)}.csv`
+        a.click()
+        URL.revokeObjectURL(url)
+    }
+
     return (
         <PageContainer>
             <SectionHeader
                 title={`Providers ${providers.length > 0 ? `(${providers.length})` : ''}`}
                 action={
-                    <>
-                        <Button variant="outline" size="sm" className="bg-white dark:bg-neutral-900 border-slate-200 dark:border-neutral-800 text-slate-700 dark:text-white shadow-sm hover:bg-slate-50 dark:hover:bg-white/10">
-                            <Filter className="mr-2 h-4 w-4" />
-                            Filter
-                        </Button>
-                        <Button variant="outline" size="sm" className="bg-white dark:bg-neutral-900 border-slate-200 dark:border-neutral-800 text-slate-700 dark:text-white shadow-sm hover:bg-slate-50 dark:hover:bg-white/10">
-                            <Download className="mr-2 h-4 w-4" />
-                            Export
-                        </Button>
-                    </>
+                    <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={exportCSV}
+                        className="bg-white dark:bg-neutral-900 border-slate-200 dark:border-neutral-800 text-slate-700 dark:text-white shadow-sm hover:bg-slate-50 dark:hover:bg-white/10"
+                    >
+                        <Download className="mr-2 h-4 w-4" />
+                        Export CSV
+                        {filteredProviders.length > 0 && (
+                            <span className="ml-1.5 text-[10px] font-black bg-slate-100 dark:bg-neutral-800 text-slate-500 dark:text-neutral-400 px-1.5 py-0.5 rounded-full">
+                                {filteredProviders.length}
+                            </span>
+                        )}
+                    </Button>
                 }
             />
 
-            <div
-                className={cn("grid gap-0 items-start min-w-0", !selectedProvider ? "grid-cols-1" : "lg:grid-cols-[1fr_6px_1fr]")}
-                style={selectedProvider ? { gridTemplateColumns: `${leftWidth}% 6px ${100 - leftWidth}%` } : {}}
-            >
+            {/* Provider Table — always full width */}
+            <div>
                 {/* Main Table Card */}
-                <Card className="w-full overflow-hidden min-w-0 border-slate-200 dark:border-neutral-800">
+                <Card className="w-full overflow-hidden border-slate-200 dark:border-neutral-800">
                     {/* Tabs */}
                     <div className="px-6 flex items-center gap-6 border-b border-slate-200 dark:border-neutral-800">
                         {tabs.map(tab => (
                             <button
                                 key={tab}
-                                onClick={() => setActiveTab(tab)}
+                                onClick={() => { setActiveTab(tab); setSearchQuery("") }}
                                 className={cn(
-                                    "py-4 text-sm font-semibold transition-all relative border-b-2",
+                                    "py-4 text-sm font-semibold transition-all relative border-b-2 flex items-center gap-2",
                                     activeTab === tab ? "text-violet-600 border-violet-600" : "text-slate-500 dark:text-neutral-400 hover:text-slate-900 dark:hover:text-white border-transparent"
                                 )}
                             >
                                 {tab}
+                                {tabCounts[tab] > 0 && (
+                                    <span className={cn(
+                                        "text-[10px] font-black px-1.5 py-0.5 rounded-full min-w-[18px] text-center",
+                                        activeTab === tab
+                                            ? "bg-violet-100 dark:bg-violet-500/20 text-violet-600 dark:text-violet-400"
+                                            : "bg-slate-100 dark:bg-neutral-800 text-slate-500 dark:text-neutral-400"
+                                    )}>
+                                        {tabCounts[tab]}
+                                    </span>
+                                )}
                             </button>
                         ))}
                     </div>
@@ -341,9 +339,19 @@ export default function ProvidersPage() {
                             <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400 dark:text-neutral-500" />
                             <input
                                 type="text"
-                                placeholder="Search providers..."
+                                value={searchQuery}
+                                onChange={e => setSearchQuery(e.target.value)}
+                                placeholder="Search by name, email or phone..."
                                 className="w-full pl-9 pr-4 py-2 bg-white dark:bg-neutral-950 border border-slate-200 dark:border-neutral-800 rounded-lg focus:outline-none focus:ring-2 focus:ring-violet-600 focus:border-transparent text-sm shadow-sm dark:text-white"
                             />
+                            {searchQuery && (
+                                <button
+                                    onClick={() => setSearchQuery("")}
+                                    className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600"
+                                >
+                                    <X className="h-3.5 w-3.5" />
+                                </button>
+                            )}
                         </div>
                     </div>
 
@@ -428,272 +436,343 @@ export default function ProvidersPage() {
                     </CardContent>
                 </Card>
 
-                {/* Right Panel Detail Inspector */}
-                {selectedProvider && (
-                    <>
-                        <div
-                            className={cn(
-                                "hidden lg:block w-[6px] h-full cursor-col-resize hover:bg-slate-200 transition-colors self-stretch",
-                                isResizing && "bg-violet-400 lg:hover:bg-violet-400"
-                            )}
-                            onMouseDown={(e) => {
-                                setIsResizing(true)
-                                e.preventDefault()
-                            }}
-                        />
-                        <Card className="w-full shrink-0 lg:min-w-0 sticky top-6 overflow-auto max-h-[calc(100vh-120px)]">
-                            <div className="p-6 border-b border-slate-200 flex justify-between items-start gap-4">
-                                <div>
-                                    <h3 className={cn("text-lg font-bold text-slate-900", selectedProvider.status === 'deleted' && 'line-through text-slate-500')}>{selectedProvider.name}</h3>
-                                    <p className="text-sm text-slate-500">{selectedProvider.email}</p>
-                                </div>
-                                <Button variant="ghost" size="icon" onClick={() => setSelectedProvider(null)} className="h-8 w-8 text-slate-400 shrink-0">
-                                    <X className="h-4 w-4" />
-                                </Button>
-                            </div>
+            </div>
 
-                            <div className="px-6 flex items-center gap-6 border-b border-slate-200 overflow-x-auto no-scrollbar">
-                                {["Basic Info", "Documents", "Services", "Status", "Activity", "Trust & Risk", "Intent Insights"].map(tab => (
-                                    <button
-                                        key={tab}
-                                        onClick={() => setDetailTab(tab)}
-                                        className={cn(
-                                            "py-3 text-xs font-semibold uppercase tracking-wider transition-all border-b-2 whitespace-nowrap",
-                                            detailTab === tab ? "text-violet-600 border-violet-600" : "text-slate-500 hover:text-slate-900 border-transparent"
-                                        )}
-                                    >
-                                        {tab}
-                                    </button>
-                                ))}
+            {/* Slide-over Drawer */}
+            {selectedProvider && (
+                <>
+                    {/* Backdrop */}
+                    <div
+                        className="fixed inset-0 bg-black/30 backdrop-blur-[2px] z-40 transition-opacity duration-300"
+                        onClick={() => setSelectedProvider(null)}
+                    />
+                    {/* Drawer panel */}
+                    <div className="fixed top-0 right-0 h-full w-full max-w-[660px] z-50 flex flex-col bg-white dark:bg-neutral-900 shadow-2xl border-l border-slate-200 dark:border-neutral-800 animate-in slide-in-from-right duration-300">
+                        {/* Drawer header */}
+                        <div className="px-6 py-5 border-b border-slate-200 dark:border-neutral-800 flex items-start justify-between gap-4 shrink-0">
+                            <div>
+                                <h3 className={cn(
+                                    "text-lg font-bold",
+                                    selectedProvider.status === 'deleted'
+                                        ? 'line-through text-slate-400'
+                                        : 'text-slate-900 dark:text-white'
+                                )}>
+                                    {selectedProvider.name}
+                                </h3>
+                                <p className="text-sm text-slate-500 dark:text-neutral-400 mt-0.5">{selectedProvider.email}</p>
                             </div>
+                            <Button
+                                variant="ghost"
+                                size="icon"
+                                onClick={() => setSelectedProvider(null)}
+                                className="h-8 w-8 text-slate-400 hover:text-slate-700 dark:hover:text-white shrink-0 mt-0.5"
+                            >
+                                <X className="h-4 w-4" />
+                            </Button>
+                        </div>
 
-                            <CardContent className="p-6 pt-6 min-h-[300px]">
-                                {detailTab === "Basic Info" && (
-                                    <div className="space-y-4 text-sm">
-                                        <div className="grid grid-cols-[100px_1fr] gap-2">
-                                            <span className="text-slate-500 font-medium">Phone</span>
-                                            <span className="text-slate-900">{selectedProvider.phone || '—'}</span>
-                                        </div>
-                                        <div className="grid grid-cols-[100px_1fr] gap-2">
-                                            <span className="text-slate-500 font-medium">Category</span>
-                                            <span className="text-slate-900">{selectedProvider.category?.name || '—'}</span>
-                                        </div>
-                                        <div className="grid grid-cols-[100px_1fr] gap-2">
-                                            <span className="text-slate-500 font-medium">Provider ID</span>
-                                            <span className="text-slate-900 break-all">{selectedProvider._id}</span>
-                                        </div>
-                                        {selectedProvider.aadhaarInfo && (
-                                            <div className="grid grid-cols-[100px_1fr] gap-2">
-                                                <span className="text-slate-500 font-medium whitespace-nowrap">Aadhaar Ref</span>
-                                                <span className="text-slate-900 break-all">{selectedProvider.aadhaarInfo.reference_id}</span>
-                                            </div>
-                                        )}
+                        {/* Tab strip */}
+                        <div className="px-4 flex items-center gap-1 border-b border-slate-200 dark:border-neutral-800 shrink-0 bg-white dark:bg-neutral-900">
+                            {["Basic Info", "Documents", "Services", "Status", "Activity", "Trust & Risk", "Intent Insights"].map(tab => (
+                                <button
+                                    key={tab}
+                                    onClick={() => setDetailTab(tab)}
+                                    className={cn(
+                                        "px-3 py-3 text-[11px] font-semibold uppercase tracking-wide transition-all border-b-2 whitespace-nowrap",
+                                        detailTab === tab
+                                            ? "text-violet-600 border-violet-600"
+                                            : "text-slate-500 hover:text-slate-800 dark:hover:text-white border-transparent"
+                                    )}
+                                >
+                                    {tab}
+                                </button>
+                            ))}
+                        </div>
+
+                        {/* Scrollable content */}
+                        <div className="flex-1 overflow-y-auto p-6">
+                            {detailTab === "Basic Info" && (
+                                <div className="space-y-4 text-sm">
+                                    <div className="grid grid-cols-[100px_1fr] gap-2">
+                                        <span className="text-slate-500 font-medium">Phone</span>
+                                        <span className="text-slate-900">{selectedProvider.phone || '—'}</span>
                                     </div>
-                                )}
+                                    <div className="grid grid-cols-[100px_1fr] gap-2">
+                                        <span className="text-slate-500 font-medium">Category</span>
+                                        <span className="text-slate-900">{selectedProvider.category?.name || '—'}</span>
+                                    </div>
+                                    <div className="grid grid-cols-[100px_1fr] gap-2">
+                                        <span className="text-slate-500 font-medium">Provider ID</span>
+                                        <span className="text-slate-900 break-all">{selectedProvider._id}</span>
+                                    </div>
+                                    {selectedProvider.aadhaarInfo && (
+                                        <div className="grid grid-cols-[100px_1fr] gap-2">
+                                            <span className="text-slate-500 font-medium whitespace-nowrap">Aadhaar Ref</span>
+                                            <span className="text-slate-900 break-all">{selectedProvider.aadhaarInfo.reference_id}</span>
+                                        </div>
+                                    )}
+                                </div>
+                            )}
 
-                                {detailTab === "Documents" && (
-                                    <div className="space-y-4">
-                                        {detailLoading ? (
-                                            <div className="text-center text-sm text-slate-500 py-4">Loading documents...</div>
-                                        ) : (() => {
-                                            const docs = selectedProvider.documents || (selectedProvider as any).verificationDocs || (selectedProvider as any).verification_documents || (selectedProvider as any).uploads || [];
-                                            return docs.length === 0 ? (
-                                                <div className="text-center text-sm text-slate-500 py-4">No documents uploaded.</div>
-                                            ) : (
-                                                <div className="grid grid-cols-2 gap-4">
-                                                    {docs.map((doc: any, idx: number) => (
-                                                        <a key={doc._id || idx} href={doc.document_url || doc.url} target="_blank" rel="noreferrer" className="flex flex-col gap-2 p-3 border border-slate-200 rounded-lg hover:border-violet-300 transition-colors group bg-slate-50">
-                                                            <div className="aspect-square bg-slate-200 rounded-md overflow-hidden relative">
-                                                                {/* eslint-disable-next-line @next/next/no-img-element */}
-                                                                <img src={doc.document_url || doc.url || PLACEHOLDER_IMAGE} alt={doc.document_type || doc.type || 'document'} className="object-cover w-full h-full group-hover:scale-105 transition-transform" onError={(e) => { (e.target as HTMLImageElement).src = PLACEHOLDER_IMAGE }} />
-                                                            </div>
-                                                            <div className="text-xs font-medium text-slate-700 uppercase line-clamp-1" title={(doc.document_type || doc.type || 'document').replaceAll('_', ' ')}>
-                                                                {(doc.document_type || doc.type || 'document').replaceAll('_', ' ')}
-                                                            </div>
-                                                        </a>
-                                                    ))}
+                            {detailTab === "Documents" && (
+                                <div className="space-y-4">
+                                    {detailLoading ? (
+                                        <div className="grid grid-cols-2 gap-3">
+                                            {[1, 2, 3, 4].map(i => (
+                                                <div key={i} className="h-28 rounded-xl bg-slate-100 dark:bg-neutral-800 animate-pulse" />
+                                            ))}
+                                        </div>
+                                    ) : (() => {
+                                        const docs: ProviderDocument[] = selectedProvider.documents || [];
+                                        if (docs.length === 0) {
+                                            return (
+                                                <div className="flex flex-col items-center justify-center py-12 text-slate-400 gap-2">
+                                                    <FileText className="h-8 w-8 text-slate-300" />
+                                                    <p className="text-sm font-medium">No documents uploaded yet.</p>
                                                 </div>
                                             );
-                                        })()}
-                                    </div>
-                                )}
+                                        }
+                                        return (
+                                            <div className="grid grid-cols-2 gap-3">
+                                                {docs.map((doc, idx) => {
+                                                    const url = doc.document_url;
+                                                    const isPdf = !!(doc as any).metadata?.gridfs_id || (url && (url.includes('/uploads/docs/') || url.toLowerCase().endsWith('.pdf')));
+                                                    const name = (doc as any).metadata?.originalname
+                                                        || (doc.document_type || '').replaceAll('_', ' ')
+                                                        || `Document ${idx + 1}`;
 
-                                {detailTab === "Services" && (
-                                    <div className="space-y-4">
-                                        {servicesLoading ? (
-                                            <div className="text-center text-sm text-slate-500 py-8">Loading services...</div>
-                                        ) : providerServices.length === 0 ? (
-                                            <div className="text-center text-sm text-slate-500 py-8">No services assigned to this provider.</div>
-                                        ) : (
-                                            <div className="flex flex-col gap-3">
-                                                {providerServices.map((svc: any) => (
-                                                    <div key={svc._id} className="p-4 bg-slate-50 border border-slate-200 rounded-lg flex flex-col gap-2">
-                                                        <div className="flex justify-between items-start">
-                                                            <span className="font-semibold text-slate-900">{svc.name}</span>
-                                                            <span className="text-xs font-medium text-slate-500 bg-white border border-slate-200 px-2 py-1 rounded shadow-sm">₹{svc.price} / {svc.duration_minutes}m</span>
-                                                        </div>
-                                                        <div className="flex flex-col gap-1.5 mt-2 text-sm text-slate-600">
-                                                            <div className="flex gap-2 items-center">
-                                                                <span className="font-medium text-slate-500 w-24">Category:</span>
-                                                                <span className="bg-slate-200/50 px-2 py-0.5 rounded text-slate-700">{svc.category_id?.name || categoriesMap[svc.category_id]?.name || (typeof svc.category_id === 'string' ? svc.category_id : '—')}</span>
+                                                    return (
+                                                        <a
+                                                            key={(doc as any)._id || idx}
+                                                            href={url}
+                                                            target="_blank"
+                                                            rel="noreferrer"
+                                                            className="flex flex-col gap-2 p-3 border border-slate-200 dark:border-neutral-700 rounded-xl hover:border-violet-400 dark:hover:border-violet-500 transition-colors group bg-slate-50 dark:bg-neutral-800/50"
+                                                        >
+                                                            <div className="aspect-[4/3] bg-slate-200 dark:bg-neutral-700 rounded-lg overflow-hidden flex items-center justify-center relative">
+                                                                {isPdf ? (
+                                                                    <div className="flex flex-col items-center gap-1 text-slate-500 dark:text-neutral-400">
+                                                                        <FileText className="h-8 w-8 text-violet-500" />
+                                                                        <span className="text-[10px] font-bold uppercase tracking-widest text-violet-500">PDF</span>
+                                                                    </div>
+                                                                ) : (
+                                                                    // eslint-disable-next-line @next/next/no-img-element
+                                                                    <img
+                                                                        src={url}
+                                                                        alt={name}
+                                                                        className="object-cover w-full h-full group-hover:scale-105 transition-transform duration-200"
+                                                                        onError={(e) => {
+                                                                            const t = e.target as HTMLImageElement;
+                                                                            t.style.display = 'none';
+                                                                            const parent = t.parentElement;
+                                                                            if (parent) {
+                                                                                parent.innerHTML = '<div class="flex flex-col items-center gap-1 text-slate-400"><svg xmlns=\'http://www.w3.org/2000/svg\' class=\'h-8 w-8\' fill=\'none\' viewBox=\'0 0 24 24\' stroke=\'currentColor\'><path stroke-linecap=\'round\' stroke-linejoin=\'round\' stroke-width=\'2\' d=\'M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z\' /></svg><span class=\'text-[10px]\'>No Preview</span></div>';
+                                                                            }
+                                                                        }}
+                                                                    />
+                                                                )}
                                                             </div>
-                                                            <div className="flex gap-2 items-center">
-                                                                <span className="font-medium text-slate-500 w-24">Sub-Category:</span>
-                                                                <span className="bg-slate-200/50 px-2 py-0.5 rounded text-slate-700">{svc.sub_category_id?.name || subCategoriesMap[svc.sub_category_id]?.name || (typeof svc.sub_category_id === 'string' ? svc.sub_category_id : '—')}</span>
+                                                            <div className="flex items-center gap-1.5">
+                                                                <span className="text-xs font-semibold text-slate-700 dark:text-neutral-200 truncate flex-1" title={name}>
+                                                                    {name}
+                                                                </span>
+                                                                {isPdf && (
+                                                                    <span className="shrink-0 text-[9px] font-black uppercase bg-violet-100 dark:bg-violet-500/20 text-violet-600 dark:text-violet-400 px-1.5 py-0.5 rounded">
+                                                                        PDF
+                                                                    </span>
+                                                                )}
                                                             </div>
+                                                        </a>
+                                                    );
+                                                })}
+                                            </div>
+                                        );
+                                    })()}
+                                </div>
+                            )}
+
+                            {detailTab === "Services" && (
+                                <div className="space-y-4">
+                                    {servicesLoading ? (
+                                        <div className="flex flex-col gap-3">
+                                            {[1, 2, 3].map(i => (
+                                                <div key={i} className="h-24 rounded-xl bg-slate-100 dark:bg-neutral-800 animate-pulse" />
+                                            ))}
+                                        </div>
+                                    ) : providerServices.length === 0 ? (
+                                        <div className="text-center text-sm text-slate-500 py-8">No services assigned to this provider.</div>
+                                    ) : (
+                                        <div className="flex flex-col gap-3">
+                                            {providerServices.map((svc: any) => (
+                                                <div key={svc._id} className="border border-slate-200 dark:border-neutral-700 rounded-xl overflow-hidden bg-white dark:bg-neutral-800/50">
+                                                    {/* Header row */}
+                                                    <div className="flex items-start gap-3 p-4">
+                                                        {svc.service_image && (
+                                                            // eslint-disable-next-line @next/next/no-img-element
+                                                            <img src={svc.service_image} alt={svc.name} className="w-14 h-14 rounded-lg object-cover shrink-0 border border-slate-200" />
+                                                        )}
+                                                        <div className="flex-1 min-w-0">
+                                                            <div className="flex justify-between items-start gap-2">
+                                                                <span className="font-semibold text-slate-900 dark:text-white text-sm">{svc.name}</span>
+                                                                <div className="flex items-center gap-2 shrink-0">
+                                                                    <span className={cn(
+                                                                        "text-[10px] font-bold uppercase px-2 py-0.5 rounded-full",
+                                                                        svc.active
+                                                                            ? "bg-emerald-100 text-emerald-700 dark:bg-emerald-500/20 dark:text-emerald-400"
+                                                                            : "bg-red-100 text-red-600 dark:bg-red-500/20 dark:text-red-400"
+                                                                    )}>
+                                                                        {svc.active ? "Active" : "Inactive"}
+                                                                    </span>
+                                                                    <span className="text-xs font-semibold text-slate-500 dark:text-neutral-400 bg-slate-100 dark:bg-neutral-700 border border-slate-200 dark:border-neutral-600 px-2 py-0.5 rounded-md whitespace-nowrap">
+                                                                        ₹{svc.price} / {svc.duration_minutes}m
+                                                                    </span>
+                                                                </div>
+                                                            </div>
+                                                            {svc.description && (
+                                                                <p className="text-xs text-slate-500 dark:text-neutral-400 mt-1 line-clamp-2">{svc.description}</p>
+                                                            )}
                                                         </div>
                                                     </div>
+                                                    {/* Detail row */}
+                                                    <div className="flex flex-wrap gap-x-6 gap-y-1 px-4 pb-3 text-xs text-slate-600 dark:text-neutral-400 border-t border-slate-100 dark:border-neutral-700 pt-2">
+                                                        <span><span className="font-medium text-slate-500">Category:</span> {svc.category_id?.name || '—'}</span>
+                                                        {svc.sub_category_id?.name && (
+                                                            <span><span className="font-medium text-slate-500">Sub-Category:</span> {svc.sub_category_id.name}</span>
+                                                        )}
+                                                        {(svc.buffer_before > 0 || svc.buffer_after > 0) && (
+                                                            <span><span className="font-medium text-slate-500">Buffer:</span> {svc.buffer_before}m before / {svc.buffer_after}m after</span>
+                                                        )}
+                                                    </div>
+                                                </div>
+                                            ))}
+                                        </div>
+                                    )}
+                                </div>
+                            )}
+
+                            {detailTab === "Status" && (
+                                <div className="space-y-5">
+                                    {/* Trust Status */}
+                                    <div className="flex items-center gap-3">
+                                        <span className="text-sm text-slate-500 font-medium w-[130px]">Trust Status</span>
+                                        <Badge variant={
+                                            selectedProvider.trust_status === 'VERIFIED' || selectedProvider.trust_status === 'TRUSTED' ? 'success' :
+                                                selectedProvider.trust_status === 'PENDING_VERIFICATION' ? 'warning' :
+                                                    selectedProvider.trust_status === 'SUSPENDED' || selectedProvider.trust_status === 'REJECTED' ? 'danger' : 'default'
+                                        }>
+                                            {selectedProvider.trust_status || '—'}
+                                        </Badge>
+                                    </div>
+
+                                    {/* Onboarding Step */}
+                                    <div className="flex items-center gap-3">
+                                        <span className="text-sm text-slate-500 font-medium w-[130px]">Onboarding</span>
+                                        <span className="text-sm font-semibold text-slate-700 dark:text-neutral-200 bg-slate-100 dark:bg-neutral-800 px-2.5 py-0.5 rounded-full">
+                                            {(selectedProvider.onboardingStep || 'DRAFT').replaceAll('_', ' ')}
+                                        </span>
+                                    </div>
+
+                                    {/* Account Flags */}
+                                    <div className="flex items-start gap-3">
+                                        <span className="text-sm text-slate-500 font-medium w-[130px] pt-0.5">Account Flags</span>
+                                        <div className="flex flex-wrap gap-2">
+                                            <span className={cn(
+                                                "text-xs font-semibold px-2.5 py-0.5 rounded-full",
+                                                selectedProvider.active
+                                                    ? "bg-emerald-100 text-emerald-700 dark:bg-emerald-500/20 dark:text-emerald-400"
+                                                    : "bg-red-100 text-red-600 dark:bg-red-500/20 dark:text-red-400"
+                                            )}>
+                                                {selectedProvider.active ? '✓ Active' : '✗ Inactive'}
+                                            </span>
+                                            <span className={cn(
+                                                "text-xs font-semibold px-2.5 py-0.5 rounded-full",
+                                                selectedProvider.searchable
+                                                    ? "bg-blue-100 text-blue-700 dark:bg-blue-500/20 dark:text-blue-400"
+                                                    : "bg-slate-100 text-slate-500 dark:bg-neutral-700 dark:text-neutral-400"
+                                            )}>
+                                                {selectedProvider.searchable ? '✓ Searchable' : '✗ Not Searchable'}
+                                            </span>
+                                        </div>
+                                    </div>
+
+                                    {/* Rejection Reasons */}
+                                    {selectedProvider.rejection_reasons && selectedProvider.rejection_reasons.length > 0 && (
+                                        <div className="space-y-2">
+                                            <span className="block text-sm text-slate-500 font-medium">Rejection History:</span>
+                                            <ul className="list-disc pl-4 space-y-1 text-sm text-slate-700 dark:text-neutral-300">
+                                                {selectedProvider.rejection_reasons.map((r: string, i: number) => (
+                                                    <li key={i}>{r}</li>
+                                                ))}
+                                            </ul>
+                                        </div>
+                                    )}
+
+                                    {/* Hygiene Checklist */}
+                                    {selectedProvider.hygiene_checklist && selectedProvider.hygiene_checklist.length > 0 && (
+                                        <div className="space-y-2">
+                                            <span className="block text-sm text-slate-500 font-medium">Hygiene Checklist:</span>
+                                            <div className="flex flex-wrap gap-1.5">
+                                                {selectedProvider.hygiene_checklist.map((item: string, i: number) => (
+                                                    <span key={i} className="text-xs bg-teal-50 dark:bg-teal-500/10 text-teal-700 dark:text-teal-400 border border-teal-200 dark:border-teal-500/20 px-2 py-0.5 rounded-full">
+                                                        ✓ {item}
+                                                    </span>
                                                 ))}
                                             </div>
-                                        )}
-                                    </div>
-                                )}
-
-                                {detailTab === "Status" && (
-                                    <div className="space-y-6">
-                                        <div className="flex items-center gap-3">
-                                            <span className="text-sm text-slate-500 font-medium w-[100px]">Current</span>
-                                            <Badge variant={
-                                                (selectedProvider.trust_status || selectedProvider.status) === 'VERIFIED' || (selectedProvider.trust_status || selectedProvider.status) === 'active' ? 'success' :
-                                                    (selectedProvider.trust_status || selectedProvider.status) === 'PENDING_VERIFICATION' || (selectedProvider.trust_status || selectedProvider.status) === 'pending' ? 'warning' :
-                                                        (selectedProvider.trust_status || selectedProvider.status) === 'deleted' ? 'default' : 'danger'
-                                            } className={(selectedProvider.trust_status || selectedProvider.status) === 'deleted' ? 'bg-slate-100 text-slate-500 font-normal shadow-none' : ''}>
-                                                {selectedProvider.trust_status || selectedProvider.status}
-                                            </Badge>
                                         </div>
+                                    )}
 
-                                        {selectedProvider.rejection_reasons && selectedProvider.rejection_reasons.length > 0 && (
-                                            <div className="space-y-2">
-                                                <span className="block text-sm text-slate-500 font-medium">Rejection History:</span>
-                                                <ul className="list-disc pl-4 space-y-1 text-sm text-slate-700">
-                                                    {selectedProvider.rejection_reasons.map((r, i) => (
-                                                        <li key={i}>{r}</li>
-                                                    ))}
-                                                </ul>
-                                            </div>
-                                        )}
-
-                                        {selectedProvider.status === 'deleted' && selectedProvider.deletedReason && (
-                                            <div className="p-4 bg-slate-50 rounded-lg border border-slate-200 text-sm">
-                                                <span className="block text-slate-500 font-medium mb-1">Reason for Deletion:</span>
-                                                <span className="text-slate-900">{selectedProvider.deletedReason}</span>
-                                            </div>
-                                        )}
-
-                                        <div className="pt-4 border-t border-slate-200 flex flex-col gap-3 mt-4">
-                                            <p className="text-xs font-medium text-slate-500 uppercase tracking-wider mb-1">Administrative Actions</p>
-                                            <div className="flex flex-wrap gap-2">
-                                                {/* Approve: Only for PENDING, UNLISTED, or SUSPENDED (Restore) */}
-                                                {(selectedProvider.trust_status === 'PENDING_VERIFICATION' || selectedProvider.trust_status === 'UNLISTED' || selectedProvider.trust_status === 'SUSPENDED') && selectedProvider.status !== 'deleted' && (
-                                                    <Button size="sm" onClick={() => handleApprove(selectedProvider._id)} disabled={actionLoading} className="bg-green-600 hover:bg-green-700 text-white shadow-sm">
-                                                        Approve
-                                                    </Button>
-                                                )}
-
-                                                {/* Reject: Only for PENDING or UNLISTED */}
-                                                {(selectedProvider.trust_status === 'PENDING_VERIFICATION' || selectedProvider.trust_status === 'UNLISTED') && selectedProvider.status !== 'deleted' && (
-                                                    <Button size="sm" variant="outline" onClick={() => handleReject(selectedProvider._id)} disabled={actionLoading} className="text-orange-600 border-orange-200 hover:bg-orange-50">
-                                                        Reject
-                                                    </Button>
-                                                )}
-
-                                                {/* Suspend: Only for VERIFIED or TRUSTED */}
-                                                {(selectedProvider.trust_status === 'VERIFIED' || selectedProvider.trust_status === 'TRUSTED') && selectedProvider.status !== 'deleted' && (
-                                                    <Button size="sm" variant="outline" onClick={() => handleSuspend(selectedProvider._id)} disabled={actionLoading} className="text-red-600 border-red-200 hover:bg-red-50">
-                                                        Suspend
-                                                    </Button>
-                                                )}
-                                            </div>
+                                    {/* Admin Actions */}
+                                    <div className="pt-4 border-t border-slate-200 dark:border-neutral-700 flex flex-col gap-3 mt-4">
+                                        <p className="text-xs font-medium text-slate-500 uppercase tracking-wider">Administrative Actions</p>
+                                        <div className="flex flex-wrap gap-2">
+                                            {(selectedProvider.trust_status === 'PENDING_VERIFICATION' || selectedProvider.trust_status === 'UNLISTED' || selectedProvider.trust_status === 'SUSPENDED') && selectedProvider.status !== 'deleted' && (
+                                                <Button size="sm" onClick={() => handleApprove(selectedProvider._id)} disabled={actionLoading} className="bg-green-600 hover:bg-green-700 text-white shadow-sm">
+                                                    Approve
+                                                </Button>
+                                            )}
+                                            {(selectedProvider.trust_status === 'PENDING_VERIFICATION' || selectedProvider.trust_status === 'UNLISTED') && selectedProvider.status !== 'deleted' && (
+                                                <Button size="sm" variant="outline" onClick={() => handleReject(selectedProvider._id)} disabled={actionLoading} className="text-orange-600 border-orange-200 hover:bg-orange-50">
+                                                    Reject
+                                                </Button>
+                                            )}
+                                            {(selectedProvider.trust_status === 'VERIFIED' || selectedProvider.trust_status === 'TRUSTED') && selectedProvider.status !== 'deleted' && (
+                                                <Button size="sm" variant="outline" onClick={() => handleSuspend(selectedProvider._id)} disabled={actionLoading} className="text-red-600 border-red-200 hover:bg-red-50">
+                                                    Suspend
+                                                </Button>
+                                            )}
                                         </div>
                                     </div>
-                                )}
+                                </div>
+                            )}
 
-                                {detailTab === "Activity" && (
-                                    <div className="space-y-4 text-sm">
+                            {detailTab === "Activity" && (
+                                <div className="space-y-4 text-sm">
+                                    <div className="grid grid-cols-[100px_1fr] gap-2">
+                                        <span className="text-slate-500 font-medium">Joined Date</span>
+                                        <span className="text-slate-900">{new Date(selectedProvider.createdAt).toLocaleDateString()}</span>
+                                    </div>
+                                    {selectedProvider.deletedAt && (
                                         <div className="grid grid-cols-[100px_1fr] gap-2">
-                                            <span className="text-slate-500 font-medium">Joined Date</span>
-                                            <span className="text-slate-900">{new Date(selectedProvider.createdAt).toLocaleDateString()}</span>
+                                            <span className="text-slate-500 font-medium">Deleted On</span>
+                                            <span className="text-slate-900">{new Date(selectedProvider.deletedAt).toLocaleDateString()}</span>
                                         </div>
-                                        {selectedProvider.deletedAt && (
-                                            <div className="grid grid-cols-[100px_1fr] gap-2">
-                                                <span className="text-slate-500 font-medium">Deleted On</span>
-                                                <span className="text-slate-900">{new Date(selectedProvider.deletedAt).toLocaleDateString()}</span>
-                                            </div>
-                                        )}
-                                    </div>
-                                )}
+                                    )}
+                                </div>
+                            )}
 
-                                {detailTab === "Trust & Risk" && (
-                                    <div className="space-y-6">
-                                        {trustLoading ? (
-                                            <div className="text-center text-sm text-slate-500 py-8">Loading trust metrics...</div>
-                                        ) : trustData ? (
-                                            <>
-                                                {/* Trust Score Header Card */}
-                                                <Card className="p-6 bg-white border-slate-200 shadow-sm flex flex-col items-center justify-center text-center">
-                                                    <div className="text-sm font-medium text-slate-500 uppercase tracking-wider mb-2">Trust Score</div>
-                                                    <div className={cn(
-                                                        "text-5xl font-bold mb-2",
-                                                        trustData.trustScore >= 86 ? "text-emerald-600" :
-                                                            trustData.trustScore >= 51 ? "text-amber-500" :
-                                                                "text-red-500"
-                                                    )}>
-                                                        {trustData.trustScore || 0}
-                                                    </div>
-                                                    <div className="flex gap-4 text-sm font-medium mt-2">
-                                                        <span className="text-slate-700">Level: <span className="font-bold">{trustData.trustLevel?.replace('_', ' ') || 'UNKNOWN'}</span></span>
-                                                    </div>
-                                                </Card>
-
-                                                {/* Trust Trend Graph */}
-                                                <div className="w-full h-[200px] mt-2 mb-4">
-                                                    {trustHistory && trustHistory.length > 0 ? (
-                                                        <ResponsiveContainer width="100%" height="100%">
-                                                            <LineChart data={trustHistory}>
-                                                                <XAxis dataKey="day" axisLine={false} tickLine={false} tick={{ fontSize: 10, fill: '#94a3b8' }} dy={10} />
-                                                                <YAxis domain={['dataMin - 10', 100]} axisLine={false} tickLine={false} tick={{ fontSize: 10, fill: '#94a3b8' }} dx={-10} />
-                                                                <RechartsTooltip contentStyle={{ borderRadius: '8px', border: '1px solid #e2e8f0', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)' }} />
-                                                                <Line type="monotone" dataKey="trustScore" stroke="#3B82F6" strokeWidth={2} dot={trustHistory.length === 1} activeDot={{ r: 4 }} />
-                                                            </LineChart>
-                                                        </ResponsiveContainer>
-                                                    ) : (
-                                                        <div className="w-full h-full flex items-center justify-center text-sm font-medium text-slate-400 border border-dashed border-slate-200 rounded-lg bg-slate-50">
-                                                            No trust history available.
-                                                        </div>
-                                                    )}
-                                                </div>
-
-                                                {/* Action Flags */}
-                                                <div className="pt-4 border-t border-slate-200 mt-2">
-                                                    <h4 className="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-3">Action Flags</h4>
-                                                    {trustData.actionFlags && trustData.actionFlags.length > 0 ? (
-                                                        <div className="flex flex-wrap gap-2">
-                                                            {trustData.actionFlags.map((flag: any, idx: number) => (
-                                                                <span key={idx} className="px-2.5 py-1 bg-red-100 text-red-600 rounded-full text-xs font-semibold uppercase">
-                                                                    {flag.action || flag}
-                                                                </span>
-                                                            ))}
-                                                        </div>
-                                                    ) : (
-                                                        <div className="text-sm text-slate-500 bg-slate-50 p-3 rounded-lg border border-slate-100 italic">
-                                                            No active risk flags.
-                                                        </div>
-                                                    )}
-                                                </div>
-                                            </>
-                                        ) : (
-                                            <div className="text-center text-sm text-slate-500 py-8">Trust data not initialized for this provider.</div>
-                                        )}
-                                    </div>
-                                )}
-                                {detailTab === "Intent Insights" && (
-                                    <IntentInsightsTab providerId={selectedProvider._id} />
-                                )}
-                            </CardContent>
-                        </Card>
-                    </>
-                )}
-            </div>
+                            {detailTab === "Trust & Risk" && (
+                                <div className="space-y-6">
+                                    {/* Trust Trend Panel (Handles its own fetching and defensive rendering) */}
+                                    <ProviderTrustTrendPanel key={selectedProvider._id} providerId={selectedProvider._id} />
+                                </div>
+                            )}
+                            {detailTab === "Intent Insights" && (
+                                <IntentInsightsTab providerId={selectedProvider._id} />
+                            )}
+                        </div>{/* end scrollable content */}
+                    </div>{/* end drawer panel */}
+                </>
+            )}
         </PageContainer>
     )
 }
@@ -817,3 +896,155 @@ function ConcernBar({ label, value }: { label: string, value: number }) {
     )
 }
 
+import { SectionState } from "@/components/ui/section-state"
+
+// trend
+const ProviderTrustTrendPanel = React.memo(({ providerId }: { providerId: string }) => {
+    const { data: trend, isLoading, error } = useTrustTrendGraphic(providerId, 30)
+
+    const chartData = trend?.trendData ?? [];
+
+    return (
+        <SectionState
+            isLoading={isLoading}
+            error={error}
+            isEmpty={!trend}
+            emptyMessage="No trust trend data available for this provider."
+        >
+            {trend && (
+                <div className="border-t border-slate-200 dark:border-neutral-800 pt-5 mt-2 space-y-6 animate-in fade-in slide-in-from-bottom-2 duration-500">
+                    <h4 className="text-xs font-black text-slate-500 uppercase tracking-widest text-center">Trust Analytics Summary</h4>
+
+                    {/* Primary Score Center Block */}
+                    <div className="flex flex-col items-center py-6 px-4 bg-slate-50 dark:bg-neutral-900/50 rounded-2xl border border-slate-100 dark:border-neutral-800 shadow-inner">
+                        <div className="text-4xl font-black text-slate-900 dark:text-white flex items-baseline gap-1">
+                            <span>
+                                {typeof trend?.currentTrustScore === "number"
+                                    ? trend.currentTrustScore.toFixed(2)
+                                    : "—"}
+                            </span>
+                            <span className="text-sm font-bold text-slate-400">/ 100</span>
+                        </div>
+                        <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest mt-2">Overall Trust Score</span>
+
+                        <div className="mt-6 flex flex-col items-center">
+                            <span className="text-xl font-black text-slate-800 dark:text-white uppercase tracking-tight">
+                                {trend?.currentTrustLevel ?? "—"}
+                            </span>
+                            <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest mt-1">Current Trust Level</span>
+                        </div>
+                    </div>
+
+                    {/* Status row */}
+                    <div className="grid grid-cols-2 gap-4 py-4 border-y border-slate-100 dark:border-neutral-800/50">
+                        <div className="text-center space-y-1">
+                            <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest block">Trust Status</span>
+                            <span className={`text-xs font-black uppercase tracking-tight ${trend.trend === 'IMPROVING' ? 'text-emerald-600' :
+                                trend.trend === 'DECLINING' ? 'text-rose-600' : 'text-amber-600'
+                                }`}>
+                                {trend?.trend ?? "—"}
+                            </span>
+                        </div>
+                        <div className="text-center space-y-1 border-l border-slate-100 dark:border-neutral-800/50">
+                            <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest block">Change</span>
+                            <span className="text-xs font-black text-slate-900 dark:text-white">
+                                {typeof trend?.percentChange === "number"
+                                    ? `${trend.percentChange >= 0 ? '+' : ''}${trend.percentChange.toFixed(1)}%`
+                                    : "—"}
+                            </span>
+                        </div>
+                        <div className="col-span-2 text-center">
+                            <span className="text-[9px] text-slate-400 font-medium">Change Since Last Evaluation</span>
+                        </div>
+                    </div>
+
+                    {/* Trust Scale Legend */}
+                    <div className="p-4 rounded-xl border border-slate-200 dark:border-neutral-800 bg-white dark:bg-neutral-950 shadow-sm">
+                        <span className="text-[10px] font-black text-slate-500 uppercase tracking-widest block mb-3">Trust Level Scale</span>
+                        <div className="grid grid-cols-5 gap-1 text-[10px] font-bold uppercase tracking-tighter">
+                            <div className="flex flex-col items-center gap-1">
+                                <span className="text-slate-400">0-20</span>
+                                <span className="px-1 py-0.5 rounded bg-slate-100 dark:bg-neutral-800 text-slate-500">Starter</span>
+                            </div>
+                            <div className="flex flex-col items-center gap-1">
+                                <span className="text-slate-400">21-40</span>
+                                <span className="px-1 py-0.5 rounded bg-amber-50 dark:bg-amber-950/30 text-amber-600">Bronze</span>
+                            </div>
+                            <div className="flex flex-col items-center gap-1">
+                                <span className="text-slate-400">41-60</span>
+                                <span className="px-1 py-0.5 rounded bg-indigo-50 dark:bg-indigo-950/30 text-indigo-600">Silver</span>
+                            </div>
+                            <div className="flex flex-col items-center gap-1">
+                                <span className="text-slate-400">61-80</span>
+                                <span className="px-1 py-0.5 rounded bg-violet-50 dark:bg-violet-950/30 text-violet-600">Gold</span>
+                            </div>
+                            <div className="flex flex-col items-center gap-1">
+                                <span className="text-slate-400">81-100</span>
+                                <span className="px-1 py-0.5 rounded bg-emerald-50 dark:bg-emerald-950/30 text-emerald-600">Signature</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    {/* reasons */}
+                    <div className="grid grid-cols-2 gap-4">
+                        {/* decay */}
+                        <div>
+                            <span className="text-[10px] font-black text-rose-500 uppercase tracking-widest block mb-2">Top Decay Reasons</span>
+                            {(!trend.summary?.topDecayReasons || trend.summary.topDecayReasons.length === 0) ? (
+                                <p className="text-xs text-slate-400 italic">None</p>
+                            ) : (
+                                <div className="space-y-1.5">
+                                    {trend.summary.topDecayReasons.slice(0, 3).map((reason: string, i: number) => (
+                                        <div key={i} className="text-[11px] bg-rose-50 dark:bg-rose-950/20 border border-rose-100 dark:border-rose-900/30 rounded-lg px-2.5 py-1.5 text-rose-700 dark:text-rose-400 font-semibold leading-tight">
+                                            {reason}
+                                        </div>
+                                    ))}
+                                </div>
+                            )}
+                        </div>
+                        {/* recovery */}
+                        <div>
+                            <span className="text-[10px] font-black text-emerald-600 uppercase tracking-widest block mb-2">Top Recovery Reasons</span>
+                            {(!trend.summary?.topRecoveryReasons || trend.summary.topRecoveryReasons.length === 0) ? (
+                                <p className="text-xs text-slate-400 italic">None</p>
+                            ) : (
+                                <div className="space-y-1.5">
+                                    {trend.summary.topRecoveryReasons.slice(0, 3).map((reason: string, i: number) => (
+                                        <div key={i} className="text-[11px] bg-emerald-50 dark:bg-emerald-950/20 border border-emerald-100 dark:border-emerald-900/30 rounded-lg px-2.5 py-1.5 text-emerald-700 dark:text-emerald-400 font-semibold leading-tight">
+                                            {reason}
+                                        </div>
+                                    ))}
+                                </div>
+                            )}
+                        </div>
+                    </div>
+
+                    {/* recommendations */}
+                    <div className="pt-4 border-t border-slate-100 dark:border-neutral-800">
+                        <span className="text-[10px] font-black text-slate-500 uppercase tracking-widest block mb-3">Optimization Recommendations</span>
+                        {(!trend.summary?.recommendations || trend.summary.recommendations.length === 0) ? (
+                            <p className="text-xs text-slate-400 italic">None</p>
+                        ) : (
+                            <div className="space-y-3">
+                                {trend.summary.recommendations.slice(0, 3).map((rec: any, idx: number) => (
+                                    <div key={idx} className="flex gap-3 p-3 rounded-xl bg-slate-50 dark:bg-neutral-900/30 border border-slate-100 dark:border-neutral-800">
+                                        <div className={cn(
+                                            "mt-1.5 w-1.5 h-1.5 rounded-full shrink-0",
+                                            rec.priority === 'high' ? "bg-rose-500 animate-pulse" : rec.priority === 'medium' ? "bg-amber-500" : "bg-emerald-500"
+                                        )} />
+                                        <div className="space-y-0.5">
+                                            <div className="text-[11px] font-black text-slate-900 dark:text-white uppercase tracking-tight line-clamp-1">{rec.action}</div>
+                                            <div className="text-[10px] text-slate-500 dark:text-neutral-400 leading-relaxed italic">{rec.reason}</div>
+                                        </div>
+                                    </div>
+                                ))}
+                            </div>
+                        )}
+                    </div>
+                </div>
+            )}
+        </SectionState>
+    )
+})
+
+ProviderTrustTrendPanel.displayName = "ProviderTrustTrendPanel"

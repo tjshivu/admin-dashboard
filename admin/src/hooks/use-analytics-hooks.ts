@@ -5,6 +5,8 @@ import {
     fetchWeeklyAnalytics,
     fetchMonthlyAnalytics,
     fetchLiveTodayAnalytics,
+    fetchTrustTrendGraphic,
+    fetchDailyTrendSummary,
     get
 } from "@/lib/api"
 import {
@@ -16,7 +18,9 @@ import {
     SnapshotData,
     ComplaintData,
     ReviewData,
-    IntentAnalytics
+    IntentAnalytics,
+    TrustTrendGraphic,
+    DailyTrendSummary
 } from "@/types/analytics"
 import { useMemo } from "react"
 
@@ -24,6 +28,7 @@ export function useDashboardSummary() {
     return useQuery<AllTimeAnalytics>({
         queryKey: ["dashboard-summary"],
         queryFn: fetchAllTimeAnalytics,
+        staleTime: 15 * 60 * 1000, // all-time
         retry: false,
         refetchOnWindowFocus: false
     })
@@ -122,6 +127,7 @@ export function useAnalyticsData(
     const allTime = useQuery<AllTimeAnalytics>({
         queryKey: ['all-time'],
         queryFn: fetchAllTimeAnalytics,
+        staleTime: 15 * 60 * 1000, // all-time
         retry: false,
         refetchOnWindowFocus: false
     })
@@ -129,6 +135,7 @@ export function useAnalyticsData(
     const daily = useQuery<SnapshotData>({
         queryKey: ['daily-snapshot', selectedDay],
         queryFn: () => fetchDailyAnalytics(selectedDay),
+        staleTime: 10 * 60 * 1000, // snapshot
         retry: false,
         refetchOnWindowFocus: false
     })
@@ -136,6 +143,7 @@ export function useAnalyticsData(
     const weekly = useQuery<SnapshotData | null>({
         queryKey: ['weekly-snapshot', selectedWeek],
         queryFn: () => fetchWeeklyAnalytics(selectedWeek),
+        staleTime: 10 * 60 * 1000, // snapshot
         retry: false,
         refetchOnWindowFocus: false
     })
@@ -143,6 +151,7 @@ export function useAnalyticsData(
     const monthly = useQuery<SnapshotData | null>({
         queryKey: ['monthly-snapshot', selectedMonth],
         queryFn: () => fetchMonthlyAnalytics(selectedMonth),
+        staleTime: 10 * 60 * 1000, // snapshot
         retry: false,
         refetchOnWindowFocus: false
     })
@@ -154,6 +163,30 @@ export function useIntentAnalytics() {
     return useQuery({
         queryKey: ["session-intent-summary"],
         queryFn: () => get<IntentAnalytics>("/analytics/conversion/session-based"),
+        retry: false,
+        refetchOnWindowFocus: false
+    })
+}
+
+// trust
+export function useTrustTrendGraphic(providerId: string, days: number = 30) {
+    return useQuery<TrustTrendGraphic>({
+        queryKey: ["trust-trend-graphic", providerId, days],
+        queryFn: () => fetchTrustTrendGraphic(providerId, days),
+        staleTime: 5 * 60 * 1000, // trend
+        enabled: Boolean(providerId),
+        retry: false,
+        refetchOnWindowFocus: false
+    })
+}
+
+// intent
+export function useDailyTrendSummary(day: string) {
+    return useQuery<DailyTrendSummary>({
+        queryKey: ["daily-trend-summary", day],
+        queryFn: () => fetchDailyTrendSummary(day),
+        staleTime: 5 * 60 * 1000, // trend
+        enabled: Boolean(day),
         retry: false,
         refetchOnWindowFocus: false
     })

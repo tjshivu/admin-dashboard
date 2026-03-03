@@ -4,11 +4,14 @@ if (!process.env.NEXT_PUBLIC_API_URL) {
 
 const BASE_URL = process.env.NEXT_PUBLIC_API_URL;
 import { queryClient } from "./query-client";
+import { getUTCDayStr } from "./date-utils";
 import {
     DashboardSummary,
     SnapshotData,
     AllTimeAnalytics,
-    IntentAnalytics
+    IntentAnalytics,
+    TrustTrendGraphic,
+    DailyTrendSummary
 } from "@/types/analytics";
 
 export interface ApiResponse<T = unknown> {
@@ -143,7 +146,8 @@ export async function fetchAllTimeAnalytics(): Promise<AllTimeAnalytics> {
 }
 
 export async function fetchLiveTodayAnalytics(): Promise<SnapshotData> {
-    const res = await get<SnapshotData>(`/analytics/live-today`);
+    const today = getUTCDayStr(); // fixed
+    const res = await get<SnapshotData>(`/analytics/daily/${today}`);
     if (!res?.success) throw new Error("Failed to fetch live analytics");
     return res.data;
 }
@@ -152,6 +156,25 @@ export async function fetchLiveTodayAnalytics(): Promise<SnapshotData> {
 export async function fetchSystemHealth() {
     const res = await get(`/admin/system-health`);
     if (!res?.success) throw new Error("Failed to fetch system health");
+    return res.data;
+}
+
+// trust
+export async function fetchTrustTrendGraphic(
+    providerId: string,
+    days: number = 30
+): Promise<TrustTrendGraphic> {
+    const res = await get<TrustTrendGraphic>(
+        `/analytics/provider/${providerId}/trust-trend-graphic?days=${days}`
+    );
+    if (!res?.success) throw new Error("Failed to fetch trust trend");
+    return res.data;
+}
+
+// intent
+export async function fetchDailyTrendSummary(day: string): Promise<DailyTrendSummary> {
+    const res = await get<DailyTrendSummary>(`/analytics/trends/daily?day=${day}`);
+    if (!res?.success) throw new Error("Failed to fetch daily trend summary");
     return res.data;
 }
 
