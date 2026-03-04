@@ -98,16 +98,16 @@ export function useOperationalInsights() {
 
     const reviewBreakdown = useMemo(() => {
         if (!reviews.data?.data) return []
-        const counts = { OPEN: 0, RESOLVED: 0, REJECTED: 0 }
+        // ReviewReport status values are 'pending' / 'resolved' / 'rejected' (lowercase)
+        const counts = { pending: 0, resolved: 0, rejected: 0 }
         reviews.data.data.forEach((r) => {
-            if (counts[r.status] !== undefined) {
-                counts[r.status]++
-            }
+            const s = (r.status || '').toLowerCase() as keyof typeof counts
+            if (counts[s] !== undefined) counts[s]++
         })
         return [
-            { name: 'Pending', value: counts.OPEN, color: "#D97706" },
-            { name: 'Resolved', value: counts.RESOLVED, color: "#16A34A" },
-            { name: 'Rejected', value: counts.REJECTED, color: "#E2E8F0" }
+            { name: 'Pending', value: counts.pending, color: "#D97706" },
+            { name: 'Resolved', value: counts.resolved, color: "#16A34A" },
+            { name: 'Rejected', value: counts.rejected, color: "#E2E8F0" }
         ]
     }, [reviews.data])
 
@@ -182,7 +182,7 @@ export function useTrustTrendGraphic(providerId: string, days: number = 30) {
 
 // intent
 export function useDailyTrendSummary(day: string) {
-    return useQuery<DailyTrendSummary>({
+    return useQuery<DailyTrendSummary | null>({
         queryKey: ["daily-trend-summary", day],
         queryFn: () => fetchDailyTrendSummary(day),
         staleTime: 5 * 60 * 1000, // trend

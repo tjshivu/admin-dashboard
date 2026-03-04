@@ -47,35 +47,17 @@ export interface UserIntents {
   searchToProfileViewRatio: number;
   profileViewed: number;
   profileAbandoned: number;
-  profileExited?: number;
   avgProfileViewDuration: number;
-  servicesViewed?: number;
-  servicesAbandoned?: number;
   bookingInitiated: number;
   bookingAbandoned: number;
-  bookingExited?: number;
-  priceConcern: number;
-  reviewConcern: number;
-  availabilityConcern: number;
-  ratingConcern: number;
-  filterMismatch: number;
   totalSessions: number;
-  totalFlows?: number;
   avgSessionDuration: number;
-  conversionRate?: number;
-  bookingCreated?: number;
 }
 
 export interface ProviderIntents {
   profileViewed: number;
-  profileExited: number;
   bookingInitiated: number;
   bookingAbandoned: number;
-  bookingExited: number;
-  priceConcern: number;
-  reviewConcern: number;
-  availabilityConcern: number;
-  ratingConcern: number;
   totalProfileInteractions: number;
   avgProfileViewDuration: number;
 }
@@ -257,7 +239,7 @@ export interface TrustRecommendation {
   priority: 'low' | 'medium' | 'high';
 }
 
-export interface TrustTrendGraphicResponse {
+export interface TrustTrendGraphic {
   providerId: string;
   currentTrustScore: number;
   currentTrustLevel: string;
@@ -270,8 +252,8 @@ export interface TrustTrendGraphicResponse {
   };
   trendData: TrustTrendPoint[];
   summary: {
-    topDecayReasons: string[];
-    topRecoveryReasons: string[];
+    topDecayReasons: { reason: string; frequency: number }[]; // types-fix
+    topRecoveryReasons: { reason: string; frequency: number }[]; // types-fix
     recommendations: TrustRecommendation[];
   };
 }

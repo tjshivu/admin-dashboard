@@ -49,7 +49,7 @@ export default function HealthPage() {
     }
 
     const logs = health?.logs || []
-    const isDbConnected = !!health?.logs || health?.database?.readyState === 1
+    const isDbConnected = health?.database?.readyState === 1
 
     return (
         <PageContainer>

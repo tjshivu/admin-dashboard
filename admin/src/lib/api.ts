@@ -172,9 +172,9 @@ export async function fetchTrustTrendGraphic(
 }
 
 // intent
-export async function fetchDailyTrendSummary(day: string): Promise<DailyTrendSummary> {
+export async function fetchDailyTrendSummary(day: string): Promise<DailyTrendSummary | null> {
     const res = await get<DailyTrendSummary>(`/analytics/trends/daily?day=${day}`);
-    if (!res?.success) throw new Error("Failed to fetch daily trend summary");
+    if (!res || !res.success) return null;
     return res.data;
 }
 
@@ -195,4 +195,3 @@ export async function logAdminAction(title: string, description: string) {
     }
 }
 
-console.log("API BASE:", process.env.NEXT_PUBLIC_API_URL);

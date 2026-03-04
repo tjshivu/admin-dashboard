@@ -250,8 +250,13 @@ export function Header() {
                             <div className="px-4 py-2 border-b border-slate-100 dark:border-slate-700 text-sm font-semibold text-slate-800 dark:text-slate-100 mb-1">
                                 {adminProfile?.name || "Admin"}
                             </div>
+                            <div className="px-4 py-2 border-b border-slate-100 dark:border-slate-700">
+                                <p className="text-[10px] text-slate-500 font-bold uppercase tracking-wider mb-1">Your Admin UUID</p>
+                                <code className="text-[10px] block font-mono bg-slate-50 dark:bg-slate-800 p-1.5 rounded border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-400 break-all">
+                                    {adminProfile?.id || "No ID detected"}
+                                </code>
+                            </div>
                             <button className="w-full text-left px-4 py-2 text-sm text-slate-700 dark:text-slate-300 hover:bg-violet-50 dark:hover:bg-slate-700 hover:text-violet-600 transition" onClick={handleLogout}>
-
                                 Logout
                             </button>
                         </div>

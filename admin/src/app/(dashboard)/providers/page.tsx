@@ -3,7 +3,7 @@
 
 import React, { useEffect, useState } from "react"
 import { useQuery } from "@tanstack/react-query"
-import { get, patch, post, logAdminAction } from "@/lib/api"
+import { api, get, patch, post, logAdminAction } from "@/lib/api"
 import { useTrustTrendGraphic } from "@/hooks/use-analytics-hooks" // trend
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { Button } from "@/components/ui/button"
@@ -158,6 +158,8 @@ export default function ProvidersPage() {
         }
     }
 
+
+
     const handleReject = async (id: string) => {
         const reason = prompt("Please enter a reason for rejection:")
         if (reason === null) return
@@ -181,6 +183,45 @@ export default function ProvidersPage() {
             showToast({ type: "error", message: "An error occurred" })
         } finally {
             setActionLoading(false)
+        }
+    }
+
+
+    const handleViewDocument = async (e: React.MouseEvent, docUrl: string) => {
+        e.preventDefault()
+        try {
+            let fetchUrl = docUrl
+            if (docUrl.includes('/uploads/docs/') && !docUrl.includes('/admin/')) {
+                const parts = docUrl.split('/uploads/docs/')
+                const baseUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:52732/api"
+                const cleanBaseUrl = baseUrl.endsWith('/') ? baseUrl.slice(0, -1) : baseUrl
+                fetchUrl = `${cleanBaseUrl}/uploads/docs/admin/${parts[1].split('?')[0]}`
+
+                showToast({ type: "info", message: "Loading secure document..." })
+
+                const res = await fetch(fetchUrl, {
+                    method: "GET",
+                    credentials: "include"
+                })
+
+                if (!res.ok) throw new Error("Could not fetch document")
+
+                const blob = await res.blob() // format-fix
+                const type = blob.type // format-fix
+
+                if (type === "application/pdf" || type.startsWith("image/")) { // format-fix
+                    const objectUrl = window.URL.createObjectURL(blob)
+                    window.open(objectUrl, '_blank')
+                    setTimeout(() => URL.revokeObjectURL(objectUrl), 60000)
+                } else {
+                    window.open(fetchUrl, '_blank')
+                }
+            } else {
+                window.open(docUrl, '_blank')
+            }
+        } catch (error) {
+            console.error("Failed to view document", error)
+            showToast({ type: "error", message: "Failed to open document securely." })
         }
     }
 
@@ -361,15 +402,7 @@ export default function ProvidersPage() {
                             <Table>
                                 <TableHeader>
                                     <TableRow className="border-b border-slate-200 dark:border-neutral-800 bg-slate-50/50 dark:bg-neutral-900/20 hover:bg-slate-50/50 dark:hover:bg-neutral-900/20">
-                                        <TableHead className="w-12 text-center pl-6">
-                                            <input
-                                                type="checkbox"
-                                                className="rounded border-slate-300 text-violet-600 focus:ring-violet-600 shadow-sm"
-                                                checked={filteredProviders.length > 0 && selectedIds.size === filteredProviders.length}
-                                                onChange={(e) => handleSelectAll(e.target.checked)}
-                                            />
-                                        </TableHead>
-                                        <TableHead className="font-semibold text-slate-500 dark:text-neutral-400 h-10">Provider Info</TableHead>
+                                        <TableHead className="font-semibold text-slate-500 dark:text-neutral-400 h-10 pl-6">Provider Info</TableHead>
                                         <TableHead className="font-semibold text-slate-500 dark:text-neutral-400 h-10">Joined Date</TableHead>
                                         <TableHead className="font-semibold text-slate-500 dark:text-neutral-400 h-10">Status</TableHead>
                                     </TableRow>
@@ -377,11 +410,11 @@ export default function ProvidersPage() {
                                 <TableBody>
                                     {loading ? (
                                         <TableRow>
-                                            <TableCell colSpan={4} className="h-48 text-center text-slate-500">Loading specific data...</TableCell>
+                                            <TableCell colSpan={3} className="h-48 text-center text-slate-500">Loading specific data...</TableCell>
                                         </TableRow>
                                     ) : filteredProviders.length === 0 ? (
                                         <TableRow>
-                                            <TableCell colSpan={4} className="h-48 text-center text-slate-500">No providers found in this category</TableCell>
+                                            <TableCell colSpan={3} className="h-48 text-center text-slate-500">No providers found in this category</TableCell>
                                         </TableRow>
                                     ) : (
                                         filteredProviders.map((p) => (
@@ -399,15 +432,7 @@ export default function ProvidersPage() {
                                                     }
                                                 }}
                                             >
-                                                <TableCell className="w-12 text-center pl-6" onClick={(e) => e.stopPropagation()}>
-                                                    <input
-                                                        type="checkbox"
-                                                        className="rounded border-slate-300 text-violet-600 focus:ring-violet-600 shadow-sm"
-                                                        checked={selectedIds.has(p._id)}
-                                                        onChange={(e) => handleSelectRow(p._id, e.target.checked)}
-                                                    />
-                                                </TableCell>
-                                                <TableCell className="py-4">
+                                                <TableCell className="py-4 pl-6">
                                                     <div className="flex flex-col">
                                                         <span className={cn("font-medium text-sm", p.status === 'deleted' ? 'text-slate-500 line-through' : 'text-slate-900')}>{p.name}</span>
                                                         <span className="text-xs text-slate-500">{p.email}</span>
@@ -420,9 +445,9 @@ export default function ProvidersPage() {
                                                 </TableCell>
                                                 <TableCell>
                                                     <Badge variant={
-                                                        p.status === 'active' ? 'success' :
-                                                            p.status === 'pending' ? 'warning' :
-                                                                p.status === 'deleted' ? 'default' : 'danger'
+                                                        p.trust_status === 'VERIFIED' || p.trust_status === 'TRUSTED' ? 'success' :
+                                                            p.trust_status === 'PENDING_VERIFICATION' || p.trust_status === 'UNLISTED' ? 'warning' :
+                                                                p.trust_status === 'SUSPENDED' || p.trust_status === 'REJECTED' ? 'danger' : 'default'
                                                     } className={p.status === 'deleted' ? 'bg-slate-100 text-slate-500 font-normal shadow-none' : ''}>
                                                         {p.trust_status || p.status}
                                                     </Badge>
@@ -472,21 +497,23 @@ export default function ProvidersPage() {
                         </div>
 
                         {/* Tab strip */}
-                        <div className="px-4 flex items-center gap-1 border-b border-slate-200 dark:border-neutral-800 shrink-0 bg-white dark:bg-neutral-900">
-                            {["Basic Info", "Documents", "Services", "Status", "Activity", "Trust & Risk", "Intent Insights"].map(tab => (
-                                <button
-                                    key={tab}
-                                    onClick={() => setDetailTab(tab)}
-                                    className={cn(
-                                        "px-3 py-3 text-[11px] font-semibold uppercase tracking-wide transition-all border-b-2 whitespace-nowrap",
-                                        detailTab === tab
-                                            ? "text-violet-600 border-violet-600"
-                                            : "text-slate-500 hover:text-slate-800 dark:hover:text-white border-transparent"
-                                    )}
-                                >
-                                    {tab}
-                                </button>
-                            ))}
+                        <div className="px-4 flex items-center border-b border-slate-200 dark:border-neutral-800 shrink-0 bg-white dark:bg-neutral-900 w-full overflow-x-hidden"> {/* nav-fix */}
+                            <div className="flex flex-wrap gap-2 py-2"> {/* nav-fix */}
+                                {["Basic Info", "Documents", "Services", "Status", "Activity", "Trust & Risk", "Intent Insights"].map(tab => (
+                                    <button
+                                        key={tab}
+                                        onClick={() => setDetailTab(tab)}
+                                        className={cn(
+                                            "px-3 py-2 text-[11px] font-semibold uppercase tracking-wide transition-all border-b-2 whitespace-nowrap", // nav-fix
+                                            detailTab === tab
+                                                ? "text-violet-600 border-violet-600"
+                                                : "text-slate-500 hover:text-slate-800 dark:hover:text-white border-transparent"
+                                        )}
+                                    >
+                                        {tab}
+                                    </button>
+                                ))}
+                            </div>
                         </div>
 
                         {/* Scrollable content */}
@@ -545,9 +572,8 @@ export default function ProvidersPage() {
                                                         <a
                                                             key={(doc as any)._id || idx}
                                                             href={url}
-                                                            target="_blank"
-                                                            rel="noreferrer"
-                                                            className="flex flex-col gap-2 p-3 border border-slate-200 dark:border-neutral-700 rounded-xl hover:border-violet-400 dark:hover:border-violet-500 transition-colors group bg-slate-50 dark:bg-neutral-800/50"
+                                                            onClick={(e) => handleViewDocument(e, url)}
+                                                            className="flex flex-col gap-2 p-3 border border-slate-200 dark:border-neutral-700 rounded-xl hover:border-violet-400 dark:hover:border-violet-500 transition-colors group bg-slate-50 dark:bg-neutral-800/50 cursor-pointer"
                                                         >
                                                             <div className="aspect-[4/3] bg-slate-200 dark:bg-neutral-700 rounded-lg overflow-hidden flex items-center justify-center relative">
                                                                 {isPdf ? (
@@ -764,6 +790,8 @@ export default function ProvidersPage() {
                                 <div className="space-y-6">
                                     {/* Trust Trend Panel (Handles its own fetching and defensive rendering) */}
                                     <ProviderTrustTrendPanel key={selectedProvider._id} providerId={selectedProvider._id} />
+
+                                    {/* Primary Trust Status */}
                                 </div>
                             )}
                             {detailTab === "Intent Insights" && (
@@ -948,7 +976,7 @@ const ProviderTrustTrendPanel = React.memo(({ providerId }: { providerId: string
                         <div className="text-center space-y-1 border-l border-slate-100 dark:border-neutral-800/50">
                             <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest block">Change</span>
                             <span className="text-xs font-black text-slate-900 dark:text-white">
-                                {typeof trend?.percentChange === "number"
+                                {typeof trend?.percentChange === "number" // guard
                                     ? `${trend.percentChange >= 0 ? '+' : ''}${trend.percentChange.toFixed(1)}%`
                                     : "—"}
                             </span>
@@ -958,28 +986,31 @@ const ProviderTrustTrendPanel = React.memo(({ providerId }: { providerId: string
                         </div>
                     </div>
 
+                    {/* Chart Implementation */}
+
+
                     {/* Trust Scale Legend */}
                     <div className="p-4 rounded-xl border border-slate-200 dark:border-neutral-800 bg-white dark:bg-neutral-950 shadow-sm">
                         <span className="text-[10px] font-black text-slate-500 uppercase tracking-widest block mb-3">Trust Level Scale</span>
                         <div className="grid grid-cols-5 gap-1 text-[10px] font-bold uppercase tracking-tighter">
                             <div className="flex flex-col items-center gap-1">
-                                <span className="text-slate-400">0-20</span>
+                                <span className="text-slate-400">&lt; 31</span> {/* legend-align */}
                                 <span className="px-1 py-0.5 rounded bg-slate-100 dark:bg-neutral-800 text-slate-500">Starter</span>
                             </div>
                             <div className="flex flex-col items-center gap-1">
-                                <span className="text-slate-400">21-40</span>
+                                <span className="text-slate-400">31–50</span> {/* legend-align */}
                                 <span className="px-1 py-0.5 rounded bg-amber-50 dark:bg-amber-950/30 text-amber-600">Bronze</span>
                             </div>
                             <div className="flex flex-col items-center gap-1">
-                                <span className="text-slate-400">41-60</span>
+                                <span className="text-slate-400">51–70</span> {/* legend-align */}
                                 <span className="px-1 py-0.5 rounded bg-indigo-50 dark:bg-indigo-950/30 text-indigo-600">Silver</span>
                             </div>
                             <div className="flex flex-col items-center gap-1">
-                                <span className="text-slate-400">61-80</span>
+                                <span className="text-slate-400">71–85</span> {/* legend-align */}
                                 <span className="px-1 py-0.5 rounded bg-violet-50 dark:bg-violet-950/30 text-violet-600">Gold</span>
                             </div>
                             <div className="flex flex-col items-center gap-1">
-                                <span className="text-slate-400">81-100</span>
+                                <span className="text-slate-400">≥ 86</span> {/* legend-align */}
                                 <span className="px-1 py-0.5 rounded bg-emerald-50 dark:bg-emerald-950/30 text-emerald-600">Signature</span>
                             </div>
                         </div>
@@ -994,9 +1025,9 @@ const ProviderTrustTrendPanel = React.memo(({ providerId }: { providerId: string
                                 <p className="text-xs text-slate-400 italic">None</p>
                             ) : (
                                 <div className="space-y-1.5">
-                                    {trend.summary.topDecayReasons.slice(0, 3).map((reason: string, i: number) => (
+                                    {trend.summary.topDecayReasons.slice(0, 3).map((r: any, i: number) => ( // reason-fix
                                         <div key={i} className="text-[11px] bg-rose-50 dark:bg-rose-950/20 border border-rose-100 dark:border-rose-900/30 rounded-lg px-2.5 py-1.5 text-rose-700 dark:text-rose-400 font-semibold leading-tight">
-                                            {reason}
+                                            {r.reason.replace(/_/g, " ")} ×{r.frequency}
                                         </div>
                                     ))}
                                 </div>
@@ -1009,9 +1040,9 @@ const ProviderTrustTrendPanel = React.memo(({ providerId }: { providerId: string
                                 <p className="text-xs text-slate-400 italic">None</p>
                             ) : (
                                 <div className="space-y-1.5">
-                                    {trend.summary.topRecoveryReasons.slice(0, 3).map((reason: string, i: number) => (
+                                    {trend.summary.topRecoveryReasons.slice(0, 3).map((r: any, i: number) => ( // reason-fix
                                         <div key={i} className="text-[11px] bg-emerald-50 dark:bg-emerald-950/20 border border-emerald-100 dark:border-emerald-900/30 rounded-lg px-2.5 py-1.5 text-emerald-700 dark:text-emerald-400 font-semibold leading-tight">
-                                            {reason}
+                                            {r.reason.replace(/_/g, " ")} ×{r.frequency}
                                         </div>
                                     ))}
                                 </div>

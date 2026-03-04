@@ -59,6 +59,7 @@ export default function ComplaintsPage() {
     const [complaints, setComplaints] = useState<Complaint[]>([])
     const [loading, setLoading] = useState(true)
     const [total, setTotal] = useState(0)
+    const [activeCount, setActiveCount] = useState<number | null>(null)
     const [page, setPage] = useState(1)
     const limit = 15
 
@@ -69,6 +70,17 @@ export default function ComplaintsPage() {
     const [resolutionNotes, setResolutionNotes] = useState("")
     const [assigneeId, setAssigneeId] = useState("")
     const [priorityLevel, setPriorityLevel] = useState("0")
+
+    const fetchActiveCount = async () => {
+        try {
+            const res = await get<Complaint[]>(`/complaints/admin/list?page=1&limit=1`)
+            if (res && res.success) {
+                setActiveCount(res.pagination?.total || 0)
+            }
+        } catch (e) {
+            console.error("Failed to fetch active count", e)
+        }
+    }
 
     const loadComplaints = async (currentPage = page, tab = activeTab) => {
         if (typeof window !== "undefined" && window.location.pathname.includes("/login")) {
@@ -90,10 +102,12 @@ export default function ComplaintsPage() {
                 const fetchedData = res.data || []
                 setComplaints(fetchedData)
                 setTotal(res.pagination?.total || 0)
+                if (tab === "active") setActiveCount(res.pagination?.total || 0)
                 setSelectedId(prev => (prev && !fetchedData.find(c => c._id === prev)) ? null : prev)
             } else {
                 setComplaints([])
                 setTotal(0)
+                if (tab === "active") setActiveCount(0)
                 setSelectedId(null)
             }
         } catch (e) {
@@ -108,10 +122,8 @@ export default function ComplaintsPage() {
 
     const reloadSelectedComplaint = async () => {
         try {
-            // Note: The UI can update itself optimistically, or fetch detail. 
-            // The backend doesn't have an admin get single complaint endpoint? Wait, it has getComplaint for user. 
-            // We just reload the list and update the selected obj from the list.
             await loadComplaints(page, activeTab)
+            if (activeTab !== "active") fetchActiveCount() // Refresh background active count if not already fetched by loadComplaints
         } catch (e) {
             console.error(e)
         }
@@ -125,6 +137,7 @@ export default function ComplaintsPage() {
 
     useEffect(() => {
         loadComplaints(page, activeTab)
+        if (activeCount === null) fetchActiveCount()
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [page, activeTab])
 
@@ -171,10 +184,12 @@ export default function ComplaintsPage() {
         if (!selectedId) return
         setIsActionLoading(true)
         try {
-            const res = await patch(`/complaints/${selectedId}/assign`, {
-                assigned_to: assigneeId,
-                priority: parseInt(priorityLevel)
-            })
+            const payload: any = { priority: parseInt(priorityLevel) }
+            if (assigneeId.trim()) {
+                payload.assigned_to = assigneeId.trim()
+            }
+
+            const res = await patch(`/complaints/${selectedId}/assign`, payload)
             if (res && res.success) {
                 showToast({ type: "success", message: "Assignment updated" })
                 await reloadSelectedComplaint()
@@ -198,7 +213,14 @@ export default function ComplaintsPage() {
                 action={
                     <Tabs value={activeTab} onValueChange={(v) => handleTabChange(v as TabType)} className="w-[240px]">
                         <TabsList className="grid w-full grid-cols-2 bg-slate-100 p-1 rounded-lg">
-                            <TabsTrigger value="active" className="rounded-md data-[state=active]:bg-white data-[state=active]:shadow-sm">Active</TabsTrigger>
+                            <TabsTrigger value="active" className="rounded-md data-[state=active]:bg-white data-[state=active]:shadow-sm flex items-center gap-2">
+                                Active
+                                {activeCount !== null && (
+                                    <span className="bg-violet-100 text-violet-700 py-0.5 px-2 rounded-full text-xs font-semibold">
+                                        {activeCount}
+                                    </span>
+                                )}
+                            </TabsTrigger>
                             <TabsTrigger value="resolved" className="rounded-md data-[state=active]:bg-white data-[state=active]:shadow-sm">Resolved</TabsTrigger>
                         </TabsList>
                     </Tabs>
@@ -213,7 +235,7 @@ export default function ComplaintsPage() {
                             {loading ? (
                                 <div className="space-y-3">
                                     {[1, 2, 3, 4, 5].map(i => (
-                                        <div key={i} className="h-[100px] rounded-lg bg-slate-200 animate-pulse" />
+                                        <div key={`skeleton-${i}`} className="h-[100px] rounded-lg bg-slate-200 animate-pulse" />
                                     ))}
                                 </div>
                             ) : complaints.length === 0 ? (
@@ -221,9 +243,9 @@ export default function ComplaintsPage() {
                                     No complaints in this category.
                                 </div>
                             ) : (
-                                complaints.map(c => (
+                                complaints.map((c, idx) => (
                                     <button
-                                        key={c._id}
+                                        key={c._id || `complaint-${idx}`}
                                         onClick={() => setSelectedId(c._id)}
                                         className={`w-full text-left p-4 rounded-lg border transition-all ${selectedId === c._id
                                             ? 'bg-violet-50 border-violet-200 shadow-sm ring-1 ring-violet-500'
@@ -241,7 +263,7 @@ export default function ComplaintsPage() {
                                                 {c.status}
                                             </Badge>
                                             <Badge variant="outline" className="text-[10px] bg-white text-slate-500 border-dashed shadow-none">
-                                                {c.category.replace('_', ' ')}
+                                                {c.category.replace(/_/g, ' ')}
                                             </Badge>
                                         </div>
                                         <div className="flex flex-col gap-1 text-xs text-slate-500 w-full">
@@ -294,7 +316,7 @@ export default function ComplaintsPage() {
                                 {/* Header */}
                                 <div>
                                     <div className="flex items-center gap-2 text-sm text-slate-500 mb-2">
-                                        <span className="uppercase tracking-wider font-semibold">{selectedComplaint.category.replace('_', ' ')}</span>
+                                        <span className="uppercase tracking-wider font-semibold">{selectedComplaint.category.replace(/_/g, ' ')}</span>
                                         <span>•</span>
                                         <span className="flex items-center gap-1"><Clock className="h-3.5 w-3.5" /> {new Date(selectedComplaint.created_at).toLocaleString()}</span>
                                         <span>•</span>
@@ -332,8 +354,8 @@ export default function ComplaintsPage() {
                                                     <ImageIcon className="h-4 w-4" /> Attached Images
                                                 </div>
                                                 <div className="flex flex-wrap gap-3">
-                                                    {selectedComplaint.images.map(img => (
-                                                        <a key={img.image_id} href={img.image_url} target="_blank" rel="noreferrer" className="shrink-0 block">
+                                                    {selectedComplaint.images.map((img, idx) => (
+                                                        <a key={img.image_id || `img-${idx}`} href={img.image_url} target="_blank" rel="noreferrer" className="shrink-0 block">
                                                             <div className="h-24 w-24 rounded-lg bg-white border border-slate-200 overflow-hidden hover:opacity-80 transition-opacity shadow-sm">
                                                                 {/* eslint-disable-next-line @next/next/no-img-element */}
                                                                 <img src={img.thumbnail_url || img.image_url} alt="Proof" className="w-full h-full object-cover" />
@@ -357,7 +379,7 @@ export default function ComplaintsPage() {
                                                 <div className="flex flex-col gap-1">
                                                     <span className="font-semibold text-slate-900">{selectedComplaint.user_id.name || 'No Name'}</span>
                                                     <span className="text-slate-500">{selectedComplaint.user_id.email || 'No Email'}</span>
-                                                    <span className="font-mono text-xs text-slate-400 mt-1">{selectedComplaint.user_id._id}</span>
+                                                    <span className="font-mono text-xs text-slate-400 mt-1">ID: {selectedComplaint.user_id._id}</span>
                                                 </div>
                                             ) : (
                                                 <span className="text-slate-400 italic">User data unavailable</span>
@@ -373,7 +395,7 @@ export default function ComplaintsPage() {
                                                 <div className="flex flex-col gap-1">
                                                     <span className="font-semibold text-slate-900">{selectedComplaint.provider_id.name || 'No Name'}</span>
                                                     <span className="text-slate-500">{selectedComplaint.provider_id.email || 'No Email'}</span>
-                                                    <span className="font-mono text-xs text-slate-400 mt-1">{selectedComplaint.provider_id._id}</span>
+                                                    <span className="font-mono text-xs text-slate-400 mt-1">ID: {selectedComplaint.provider_id._id}</span>
                                                 </div>
                                             ) : (
                                                 <span className="text-slate-400 italic">Provider data unavailable</span>
@@ -385,7 +407,7 @@ export default function ComplaintsPage() {
                                             <p className="text-xs font-semibold uppercase tracking-wider text-slate-500">Booking Info</p>
                                         </CardHeader>
                                         <CardContent className="p-4 pt-2 text-sm font-mono text-slate-600">
-                                            {typeof selectedComplaint.booking_id === 'object' ? selectedComplaint.booking_id?._id : selectedComplaint.booking_id}
+                                            ID: {typeof selectedComplaint.booking_id === 'object' ? selectedComplaint.booking_id?._id : selectedComplaint.booking_id}
                                         </CardContent>
                                     </Card>
                                 </div>
@@ -412,7 +434,7 @@ export default function ComplaintsPage() {
                                             "flex flex-wrap gap-x-6 gap-y-2 mt-4 pt-4 border-t text-xs",
                                             selectedComplaint.status === 'RESOLVED' ? "border-green-200/50 text-green-700" : "border-slate-200 text-slate-500"
                                         )}>
-                                            <span><span className="font-semibold">Resolved By:</span> {selectedComplaint.resolved_by || 'System'}</span>
+                                            <span><span className="font-semibold">Resolved By (Admin ID):</span> {selectedComplaint.resolved_by || 'System'}</span>
                                             <span><span className="font-semibold">Resolved At:</span> {selectedComplaint.resolved_at ? new Date(selectedComplaint.resolved_at).toLocaleString() : 'Unknown'}</span>
                                         </div>
                                     </div>
@@ -480,7 +502,7 @@ export default function ComplaintsPage() {
                                                         <SelectTrigger className="bg-white border-slate-200">
                                                             <SelectValue placeholder="Select priority..." />
                                                         </SelectTrigger>
-                                                        <SelectContent>
+                                                        <SelectContent className="bg-white dark:bg-neutral-900 z-50">
                                                             <SelectItem value="0">Normal (0)</SelectItem>
                                                             <SelectItem value="1">Elevated (1)</SelectItem>
                                                             <SelectItem value="2">High (2)</SelectItem>

@@ -108,7 +108,7 @@ export default function ReviewsPage() {
     useEffect(() => {
         loadData()
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [viewMode])
+    }, []) // Fetch once on mount — all tabs share the same data and filter client-side
 
     const handleSelectReview = (r: Review) => {
         setSelectedReview(r)

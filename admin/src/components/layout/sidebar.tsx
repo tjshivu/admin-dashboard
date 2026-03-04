@@ -103,10 +103,10 @@ export function Sidebar() {
                     {/* Lower Menu */}
                     <div className="mt-auto flex flex-col gap-2">
                         <nav className="flex flex-col gap-1 pt-4 border-t border-slate-200">
-                            <Link href="#" title={collapsed ? "Help and docs" : undefined} className={cn(
-                                "group flex items-center rounded-lg text-sm font-medium transition-all duration-150",
-                                collapsed ? "justify-center px-2 py-3" : "gap-3 px-3 py-2",
-                                "text-slate-600 dark:text-slate-200 hover:bg-violet-50 dark:hover:bg-slate-800 hover:text-violet-600 dark:hover:text-violet-300"
+                            <Link href="/help" title={collapsed ? "Help and docs" : undefined} className={cn(
+                                "flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all group",
+                                pathname === '/help' ? "bg-violet-50 text-violet-700" : "text-slate-600 hover:bg-slate-50 hover:text-slate-900",
+                                "hover:text-violet-600 dark:hover:text-violet-300"
                             )}>
                                 <HelpCircle className="h-5 w-5 shrink-0 text-slate-400 group-hover:text-violet-600" />
                                 {!collapsed && <span className="whitespace-nowrap">Help and docs</span>}
