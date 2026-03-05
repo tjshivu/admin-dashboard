@@ -10,6 +10,8 @@ import { PageContainer } from "@/components/ui/page-container"
 import { SectionHeader } from "@/components/ui/section-header"
 import { GridSystem } from "@/components/ui/grid-system"
 import { cn } from "@/lib/utils"
+import { useNotifications } from "@/hooks/use-notifications"
+import { useEffect } from "react"
 
 export default function HealthPage() {
     const { data: health, isLoading, isError, error } = useQuery({
@@ -17,6 +19,11 @@ export default function HealthPage() {
         queryFn: fetchSystemHealth,
         refetchInterval: 30000 // Refresh every 30 seconds
     }) as { data: any, isLoading: boolean, isError: boolean, error: unknown }
+
+    const { markByEvent } = useNotifications()
+    useEffect(() => {
+        markByEvent("system_alert")
+    }, [markByEvent])
 
     const [showRaw, setShowRaw] = useState(false)
 

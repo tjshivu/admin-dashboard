@@ -191,3 +191,17 @@ export function useDailyTrendSummary(day: string) {
         refetchOnWindowFocus: false
     })
 }
+
+// Custom hook to bypass the backend metric bug by fetching all providers
+export function useLiveProvidersCount() {
+    return useQuery({
+        queryKey: ["live-providers-count"],
+        queryFn: async () => {
+            const res = await get<any[]>("/admin/providers")
+            if (!res?.success || !res.data) return 0
+            return res.data.filter((p: any) => p.trust_status === 'VERIFIED').length
+        },
+        staleTime: 5 * 60 * 1000,
+        retry: false
+    })
+}

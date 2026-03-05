@@ -11,6 +11,7 @@ import { Badge } from "@/components/ui/badge"
 import { PageContainer } from "@/components/ui/page-container"
 import { SectionHeader } from "@/components/ui/section-header"
 import { useToast } from "@/components/providers/toast-provider"
+import { useNotifications } from "@/hooks/use-notifications"
 
 interface ReviewImage {
     image_url: string
@@ -81,6 +82,7 @@ export default function ReviewsPage() {
     const [selectedHideReason, setSelectedHideReason] = useState<string>("")
     const [adminNotes, setAdminNotes] = useState("")
     const { showToast } = useToast()
+    const { markByEvent } = useNotifications()
 
     const loadData = async () => {
         setLoading(true)
@@ -107,8 +109,9 @@ export default function ReviewsPage() {
 
     useEffect(() => {
         loadData()
+        markByEvent("new_review")
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, []) // Fetch once on mount — all tabs share the same data and filter client-side
+    }, [])
 
     const handleSelectReview = (r: Review) => {
         setSelectedReview(r)

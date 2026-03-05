@@ -7,7 +7,7 @@ import { Badge } from "@/components/ui/badge"
 import {
     Users, ShoppingBag, ShieldCheck,
     MessageSquare, Target, Activity,
-    Heart, Clock, Info
+    Heart, Clock, Info, Star
 } from "lucide-react"
 
 const METRICS_DOCS = [
@@ -17,6 +17,7 @@ const METRICS_DOCS = [
             {
                 name: "DAU (Daily Active Users)",
                 icon: <Users className="w-4 h-4 text-blue-500" />,
+                isLive: true,
                 formula: "Count of unique users triggering a UsageEvent today",
                 details: "Measures unique distinct users logging in or opening the app on the current day. Excludes guest users until they authenticate or trigger an event.",
                 updated: "Every 30 minutes (Cron)"
@@ -29,11 +30,12 @@ const METRICS_DOCS = [
                 updated: "Every 24 hours (Midnight)"
             },
             {
-                name: "Repeat Users (Retention)",
+                name: "Retention Rate",
                 icon: <Heart className="w-4 h-4 text-rose-500" />,
-                formula: "Currently Unimplemented (Returns 0%)",
-                details: "Designed to measure the percentage of daily users who also visited in previous periods. Currently, no backend aggregation computes this field, so it remains zero.",
-                updated: "N/A"
+                isLive: true,
+                formula: "(Retained Users) / (Yesterday's Users)",
+                details: "Measures day-over-day stickiness. Calculates the percentage of unique users active yesterday who returned to the platform today.",
+                updated: "Every 30 minutes (Cron)"
             }
         ]
     },
@@ -48,17 +50,26 @@ const METRICS_DOCS = [
                 updated: "Every 24 hours (Midnight)"
             },
             {
-                name: "Completed Bookings",
+                name: "Total Successful",
                 icon: <ShieldCheck className="w-4 h-4 text-blue-500" />,
                 formula: "Count of all BOOKING_COMPLETED UsageEvents",
                 details: "Represents the lifetime total of bookings that successfully reached the 'completed' state, filtering out cancellations or incomplete services.",
                 updated: "Every 24 hours (Midnight)"
             },
             {
-                name: "Conversion Rate",
+                name: "Booking Conversion",
                 icon: <Target className="w-4 h-4 text-violet-500" />,
+                isLive: true,
                 formula: "(Sessions w/ Booking) / (Total Sessions Started)",
-                details: "Measures funnel efficiency. Calculates what percentage of unique user tracking sessions resulted in at least one booking creation event.",
+                details: "Measures task-oriented efficiency. Calculates what percentage of unique search intents resulted in at least one booking creation.",
+                updated: "Every 30 minutes (Cron)"
+            },
+            {
+                name: "Funnel Efficiency",
+                icon: <Target className="w-4 h-4 text-violet-500" />,
+                isLive: true,
+                formula: "(Direct Conversions) / (Total Sessions)",
+                details: "Measures overall platform health. The percentage of all visitor sessions that successfully converted into a transaction.",
                 updated: "Every 30 minutes (Cron)"
             }
         ]
@@ -76,6 +87,7 @@ const METRICS_DOCS = [
             {
                 name: "Avg Trust Score",
                 icon: <ShieldCheck className="w-4 h-4 text-emerald-500" />,
+                isLive: true,
                 formula: "System average Provider Metrics trust_score",
                 details: "The mean trust score across all active providers. Trust scores range from 0-100, influenced by reviews, cancellations, and disputes.",
                 updated: "Every 30 minutes (Cron)"
@@ -83,9 +95,17 @@ const METRICS_DOCS = [
             {
                 name: "Trust Decay / Recovery",
                 icon: <Activity className="w-4 h-4 text-rose-500" />,
+                isLive: true,
                 formula: "Count of providers with Negative vs Positive score delta",
                 details: "Decay tracks providers whose trust score dropped since the last calculation. Recovery tracks those whose score improved after a penalty.",
                 updated: "Every 30 minutes (Cron)"
+            },
+            {
+                name: "Review Density",
+                icon: <Star className="w-4 h-4 text-amber-500" />,
+                formula: "(Reviews Submitted) / (Total Successful)",
+                details: "Measures the feedback loop quality. High density indicates a highly engaged and satisfied user base for that specific service.",
+                updated: "Every 24 hours (Midnight)"
             }
         ]
     },
@@ -102,13 +122,15 @@ const METRICS_DOCS = [
             {
                 name: "Resolution Rate",
                 icon: <ShieldCheck className="w-4 h-4 text-emerald-500" />,
+                isLive: true,
                 formula: "(Complaints w/ 'RESOLVED') / (Total Complaints)",
                 details: "The percentage of historically registered complaints that have been successfully closed and marked as 'RESOLVED' by the admin team.",
                 updated: "Every 30 minutes (Cron)"
             },
             {
-                name: "Pending Complaints",
+                name: "Open Griefs",
                 icon: <Clock className="w-4 h-4 text-orange-500" />,
+                isLive: true,
                 formula: "Count of Complaints w/ status NOT 'RESOLVED'",
                 details: "The current active backlog. Counts all complaints sitting in 'OPEN' or 'IN_PROGRESS' states awaiting admin review.",
                 updated: "Every 30 minutes (Cron)"
@@ -122,8 +144,8 @@ export default function HelpDocsPage() {
         <PageContainer>
             <SectionHeader
                 title="Help & Documentation"
-                subtitle="Metric definitions, backend formulas, and refresh intervals"
             />
+            <p className="text-sm text-slate-500 mt-1 mb-6">Metric definitions, backend formulas, and refresh intervals</p>
 
             <div className="mb-8 p-4 bg-blue-50 dark:bg-blue-950/30 border border-blue-200 dark:border-blue-800 rounded-xl flex gap-3 text-blue-800 dark:text-blue-300">
                 <Info className="h-5 w-5 shrink-0 mt-0.5" />
@@ -150,7 +172,15 @@ export default function HelpDocsPage() {
                                                 <div className="p-1.5 rounded-md bg-slate-100 dark:bg-neutral-800 border border-slate-200 dark:border-neutral-700 group-hover:scale-110 transition-transform">
                                                     {metric.icon}
                                                 </div>
-                                                <h3 className="font-semibold text-slate-900 dark:text-white text-sm">{metric.name}</h3>
+                                                <div className="flex items-center gap-2">
+                                                    <h3 className="font-semibold text-slate-900 dark:text-white text-sm">{metric.name}</h3>
+                                                    {'isLive' in metric && metric.isLive && (
+                                                        <span className="relative flex h-2 w-2">
+                                                            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                                                            <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
+                                                        </span>
+                                                    )}
+                                                </div>
                                             </div>
                                             <Badge variant="outline" className="text-[10px] font-mono whitespace-nowrap bg-slate-50 dark:bg-neutral-900 text-slate-500 shadow-none border-dashed border-slate-300">
                                                 {metric.updated}

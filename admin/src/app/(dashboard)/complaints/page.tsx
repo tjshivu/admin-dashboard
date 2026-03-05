@@ -14,6 +14,7 @@ import { ChevronLeft, ChevronRight, AlertCircle, Clock, CheckCircle2, XCircle, I
 import { PageContainer } from "@/components/ui/page-container"
 import { SectionHeader } from "@/components/ui/section-header"
 import { cn } from "@/lib/utils"
+import { useNotifications } from "@/hooks/use-notifications"
 
 // Types based on the backend Complaint model
 interface ComplaintImage {
@@ -53,6 +54,7 @@ type TabType = "active" | "resolved"
 
 export default function ComplaintsPage() {
     const { showToast } = useToast()
+    const { markByEvent } = useNotifications()
 
     // State
     const [activeTab, setActiveTab] = useState<TabType>("active")
@@ -138,6 +140,7 @@ export default function ComplaintsPage() {
     useEffect(() => {
         loadComplaints(page, activeTab)
         if (activeCount === null) fetchActiveCount()
+        markByEvent("New Complaint")
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [page, activeTab])
 

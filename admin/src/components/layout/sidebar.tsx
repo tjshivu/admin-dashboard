@@ -15,8 +15,11 @@ import {
     HelpCircle,
     ChevronLeft,
     ChevronRight,
-    Tags
+    Tags,
+    Lock
 } from "lucide-react"
+import { useSharedNotifications } from "@/components/providers/notification-provider"
+import { useAdminProfile } from "@/hooks/use-admin-profile"
 
 const sidebarItems = [
     { href: "/", label: "Overview", icon: LayoutDashboard },
@@ -29,16 +32,25 @@ const sidebarItems = [
     { href: "/analytics", label: "Analytics", icon: BarChart3 },
 ]
 
+import { ALLOWED_ROUTES_FOR_NON_SUPER } from "@/lib/constants"
+
 export function Sidebar() {
     const pathname = usePathname()
     const [collapsed, setCollapsed] = useState(false)
+    const { role } = useAdminProfile()
+    const { notifications } = useSharedNotifications()
+    const unreadComplaints = notifications.filter(n => !n.read && n.event === "New Complaint").length
+    const unreadProviders = notifications.filter(n => !n.read && n.event === "Provider Submitted").length
+    const unreadReviews = notifications.filter(n => !n.read && n.event === "new_review").length
+    const unreadHealth = notifications.filter(n => !n.read && n.event === "system_alert").length
 
     useEffect(() => {
         if (typeof window !== "undefined" && window.innerWidth < 768) {
-            // eslint-disable-next-line react-hooks/set-state-in-effect
             setCollapsed(true)
         }
     }, [])
+
+    const isSuperAdmin = role === "superadmin"
 
     return (
         <div className={`
@@ -79,12 +91,27 @@ export function Sidebar() {
                                 const Icon = item.icon
                                 const isExactActive = item.href === "/" ? pathname === "/" : pathname.startsWith(item.href)
 
+                                // RBAC check
+                                const isAllowed = isSuperAdmin || ALLOWED_ROUTES_FOR_NON_SUPER.some(route => {
+                                    if (route === "/") return item.href === "/"
+                                    return item.href.startsWith(route)
+                                })
+
+                                if (!isAllowed) return null
+
+                                const badgeCount =
+                                    item.label === "Complaints" ? unreadComplaints :
+                                        item.label === "Providers" ? unreadProviders :
+                                            item.label === "Reviews" ? unreadReviews :
+                                                item.label === "System Health" ? unreadHealth :
+                                                    0
+
                                 return (
                                     <Link
                                         key={item.href}
                                         href={item.href}
                                         className={cn(
-                                            "group flex items-center rounded-lg text-sm transition-all duration-150 font-medium",
+                                            "relative group flex items-center rounded-lg text-sm transition-all duration-150 font-medium",
                                             collapsed ? "justify-center px-2 py-3" : "gap-3 px-3 py-2",
                                             isExactActive
                                                 ? "bg-violet-100 dark:bg-violet-900/40 text-violet-700 dark:text-violet-300 font-semibold"
@@ -93,7 +120,19 @@ export function Sidebar() {
                                         title={collapsed ? item.label : undefined}
                                     >
                                         <Icon className={cn("h-5 w-5 shrink-0", isExactActive ? "text-violet-700" : "text-gray-700 dark:text-white group-hover:text-violet-600")} />
-                                        {!collapsed && <span className="whitespace-nowrap">{item.label}</span>}
+                                        {!collapsed && <span className="whitespace-nowrap flex-1">{item.label}</span>}
+
+                                        {/* Expanded Badge */}
+                                        {badgeCount > 0 && !collapsed && (
+                                            <span className="ml-auto bg-rose-500 text-white text-[10px] font-bold px-1.5 py-0.5 rounded-full min-w-5 text-center shadow-sm">
+                                                {badgeCount > 99 ? "99+" : badgeCount}
+                                            </span>
+                                        )}
+
+                                        {/* Collapsed Dot */}
+                                        {badgeCount > 0 && collapsed && (
+                                            <span className="absolute top-2 right-2 w-2 h-2 bg-rose-500 rounded-full shadow-sm ring-2 ring-white dark:ring-neutral-900"></span>
+                                        )}
                                     </Link>
                                 )
                             })}

@@ -3,8 +3,14 @@
 import { useRouter } from "next/navigation"
 import {
     Users, ShoppingBag, Star,
-    Heart, Target, Activity, TrendingUp
+    Heart, Target, Activity, TrendingUp, ShieldCheck, Info
 } from "lucide-react"
+import {
+    Tooltip as UITooltip,
+    TooltipContent,
+    TooltipProvider,
+    TooltipTrigger,
+} from "@/components/ui/tooltip"
 import {
     BarChart, Bar, Cell, Tooltip, ResponsiveContainer,
     XAxis, YAxis, CartesianGrid,
@@ -15,9 +21,9 @@ import { PageContainer } from "@/components/ui/page-container"
 import { SectionHeader } from "@/components/ui/section-header"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import {
-    useDashboardSummary,
     useDashboardSnapshots,
-    useIntentAnalytics
+    useIntentAnalytics,
+    useLiveProvidersCount
 } from "@/hooks/use-analytics-hooks"
 import { useLiveAnalytics } from "@/hooks/use-live-analytics"
 import { formatNumber } from "@/lib/utils"
@@ -73,16 +79,47 @@ function MetricGroupLabel({ label, sub, badge }: { label: string; sub: string; b
 // ─── Metric Card ──────────────────────────────────────────────────────────────
 
 function MetricCard({
-    title, value, sub, icon, onClick
+    title, value, sub, icon, isLive, onClick, description
 }: {
-    title: string; value: string | number; sub: string; icon: React.ReactNode; onClick?: () => void
+    title: string; value: string | number; sub: string; icon: React.ReactNode; isLive?: boolean; onClick?: () => void; description?: string
 }) {
     return (
         <Card onClick={onClick} className={`hover:border-violet-300 dark:hover:border-violet-600 transition-all group overflow-hidden bg-white dark:bg-neutral-900 border-slate-200 dark:border-neutral-800 min-h-[120px] ${onClick ? 'cursor-pointer hover:shadow-sm' : ''}`}>
             <CardContent className="p-6 flex flex-col justify-between h-full">
                 <div className="flex items-start justify-between">
-                    <span className="text-[10px] font-black uppercase tracking-widest text-slate-400 group-hover:text-violet-600 transition-colors">{title}</span>
-                    <div className="p-2 bg-slate-50 dark:bg-neutral-800/50 rounded-lg border border-slate-100 dark:border-neutral-800 group-hover:scale-110 transition-transform">{icon}</div>
+                    <div className="flex flex-col gap-1">
+                        <div className="flex items-center gap-2">
+                            <span className="text-[10px] font-black uppercase tracking-widest text-slate-400 group-hover:text-violet-600 transition-colors">{title}</span>
+                            {isLive && (
+                                <span className="relative flex h-2 w-2">
+                                    <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                                    <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
+                                </span>
+                            )}
+                            {description && (
+                                <UITooltip>
+                                    <TooltipTrigger asChild>
+                                        <button
+                                            type="button"
+                                            className="text-slate-400 hover:text-violet-600 transition-colors p-1 -m-1"
+                                            onClick={(e) => e.stopPropagation()}
+                                        >
+                                            <Info className="w-3.5 h-3.5" />
+                                        </button>
+                                    </TooltipTrigger>
+                                    <TooltipContent
+                                        side="top"
+                                        className="max-w-[220px] text-[11px] leading-relaxed p-2 bg-slate-900 dark:bg-neutral-800 text-white border-slate-800 shadow-xl z-[100]"
+                                    >
+                                        {description}
+                                    </TooltipContent>
+                                </UITooltip>
+                            )}
+                        </div>
+                    </div>
+                    <div className="w-8 h-8 flex items-center justify-center rounded-lg bg-slate-100 dark:bg-neutral-800/50 border border-slate-100 dark:border-neutral-800 group-hover:scale-110 transition-transform">
+                        {icon}
+                    </div>
                 </div>
                 <div className="flex-1 flex flex-col justify-center py-2">
                     <div className="text-3xl font-semibold tracking-tight transition-transform group-hover:translate-x-1 text-slate-900 dark:text-white tabular-nums">
@@ -275,81 +312,97 @@ function ConversionTrendChart({ isLoading, breakdown }: {
 export default function DashboardPage() {
     const router = useRouter()
 
-    const { data: summary, isLoading: isLoadingSummary } = useDashboardSummary()
+    const { data: liveProvidersCount, isLoading: isLoadingProviders } = useLiveProvidersCount()
     const { data: liveData, isLoading: isLoadingLive } = useLiveAnalytics()
     const { data: intentRes, isLoading: isLoadingIntent } = useIntentAnalytics()
-
-    // Only need weekly for review ratio
-    const { weekly } = useDashboardSnapshots(true, 'weekly')
-    const weeklyData = weekly.data
-    const isLoadingWeekly = weekly.isLoading
 
     const conversionRate = intentRes?.data?.data?.summary?.overallConversionRate ?? 0
     const dailyBreakdown = intentRes?.data?.data?.dailyBreakdown
 
     return (
         <PageContainer>
-            <SectionHeader title="System Overview" />
+            <TooltipProvider delayDuration={100}>
+                <SectionHeader title="System Overview" />
 
-            {/* ── Section 1: Key Platform Metrics ── */}
-            <div className="mb-10">
-                <MetricGroupLabel
-                    label="Key Platform Metrics"
-                    sub="Core performance indicators"
-                    badge={<LiveBadge />}
-                />
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-6">
-                    <MetricCard
-                        title="DAU"
-                        value={isLoadingLive ? "..." : formatNumber(liveData?.dau ?? 0)}
-                        sub="Daily Active Users"
-                        icon={<Users className="w-4 h-4 text-blue-500" />}
+                {/* ── Section 1: Key Platform Metrics ── */}
+                <div className="mb-10">
+                    <MetricGroupLabel
+                        label="Key Platform Metrics"
+                        sub="Core performance indicators"
+                        badge={<LiveBadge />}
                     />
-                    <MetricCard
-                        title="Conversion Rate"
-                        value={isLoadingIntent ? "..." : `${(conversionRate * 100).toFixed(1)}%`}
-                        sub="Search → Booking"
-                        icon={<Target className="w-4 h-4 text-violet-500" />}
-                    />
-                    <MetricCard
-                        title="Review Ratio"
-                        value={isLoadingWeekly ? "..." : `${((weeklyData?.booking_to_review_ratio ?? 0) * 100).toFixed(1)}%`}
-                        sub="Booking → Review"
-                        icon={<Star className="w-4 h-4 text-amber-500" />}
-                    />
-                    <MetricCard
-                        title="Repeat Users"
-                        value={isLoadingLive ? "..." : `${((liveData?.userRetentionRate ?? 0) * 100).toFixed(1)}%`}
-                        sub="Returning User Rate"
-                        icon={<Heart className="w-4 h-4 text-rose-500" />}
-                    />
-                    <MetricCard
-                        title="Total Providers"
-                        value={isLoadingSummary ? "..." : formatNumber(summary?.totalProviders ?? 0)}
-                        sub="Supply Side"
-                        icon={<Activity className="w-4 h-4 text-indigo-500" />}
-                        onClick={() => router.push('/providers')}
-                    />
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                        <MetricCard
+                            title="DAU"
+                            value={isLoadingLive ? "..." : formatNumber(liveData?.dau ?? 0)}
+                            sub="Daily Active Users"
+                            icon={<Users className="w-4 h-4 text-blue-500" />}
+                            isLive={true}
+                            description="Logged-in users active today."
+                        />
+                        <MetricCard
+                            title="Live Providers"
+                            value={isLoadingProviders ? "..." : formatNumber(liveProvidersCount ?? 0)}
+                            sub="Active Supply"
+                            icon={<ShieldCheck className="w-4 h-4 text-emerald-500" />}
+                            isLive={true}
+                            description="Active, searchable supply currently on the platform."
+                        />
+                        <MetricCard
+                            title="Conversion Rate"
+                            value={isLoadingIntent ? "..." : `${(conversionRate * 100).toFixed(1)}%`}
+                            sub="Search → Booking"
+                            icon={<Target className="w-4 h-4 text-violet-500" />}
+                            isLive={true}
+                            description="Sessions with search that resulted in a booking."
+                        />
+                        <MetricCard
+                            title="Repeat Users"
+                            value={isLoadingLive ? "..." : `${((liveData?.userRetentionRate ?? 0) * 100).toFixed(1)}%`}
+                            sub="Returning User Rate"
+                            icon={<Heart className="w-4 h-4 text-rose-500" />}
+                            isLive={true}
+                            description="Returning users as a % of total daily actives."
+                        />
+                    </div>
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 pt-6">
+                        <MetricCard
+                            title="Live Searches"
+                            value={isLoadingLive ? "..." : formatNumber(liveData?.searches ?? 0)}
+                            sub="Initiated Today"
+                            icon={<Target className="w-4 h-4 text-orange-500" />}
+                            isLive={true}
+                            description="Total user searches initiated today. Updated live."
+                        />
+                        <MetricCard
+                            title="Live Bookings"
+                            value={isLoadingLive ? "..." : formatNumber(liveData?.bookings ?? 0)}
+                            sub="Initiated Today"
+                            icon={<ShoppingBag className="w-4 h-4 text-emerald-500" />}
+                            isLive={true}
+                            description="Bookings initiated today. Updated live."
+                        />
+                    </div>
                 </div>
-            </div>
 
-            {/* ── Section 2 & 3: Live Charts (2-col grid) ── */}
-            <div className="mb-10">
-                <MetricGroupLabel
-                    label="Live Activity & Trends"
-                    sub="Real-time data — auto-refreshes every 10 minutes"
-                />
-                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                    <TodayActivityChart
-                        isLoading={isLoadingLive}
-                        data={liveData}
+                {/* ── Section 2 & 3: Live Charts (2-col grid) ── */}
+                <div className="mb-10">
+                    <MetricGroupLabel
+                        label="Live Activity & Trends"
+                        sub="Real-time data — auto-refreshes every 10 minutes"
                     />
-                    <ConversionTrendChart
-                        isLoading={isLoadingIntent}
-                        breakdown={dailyBreakdown}
-                    />
+                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                        <TodayActivityChart
+                            isLoading={isLoadingLive}
+                            data={liveData}
+                        />
+                        <ConversionTrendChart
+                            isLoading={isLoadingIntent}
+                            breakdown={dailyBreakdown}
+                        />
+                    </div>
                 </div>
-            </div>
+            </TooltipProvider>
         </PageContainer>
     )
 }
