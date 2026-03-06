@@ -1,6 +1,8 @@
 import type { NextConfig } from "next";
 import path from "path";
 
+const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:52732/api";
+
 const nextConfig: NextConfig = {
   images: {
     remotePatterns: [
@@ -10,15 +12,15 @@ const nextConfig: NextConfig = {
       },
     ],
   },
-  outputFileTracingRoot: path.join(__dirname, "../../"),
+  outputFileTracingRoot: path.join(__dirname, "../"),
   turbopack: {
-    root: path.join(__dirname, "../../"),
+    root: path.join(__dirname, "../"),
   },
   async rewrites() {
     return [
       {
         source: "/api/:path*",
-        destination: "http://localhost:52732/api/:path*",
+        destination: `${API_URL}/:path*`,
       },
     ];
   },
