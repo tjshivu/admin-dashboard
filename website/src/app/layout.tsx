@@ -66,7 +66,7 @@ export default function RootLayout({
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
 
       </head>
-      <body className="antialiased bg-background text-foreground selection:bg-primary selection:text-primary-foreground font-sans">
+      <body className="antialiased bg-black text-white selection:bg-[#D4AF37] selection:text-black font-sans">
         <Header />
         {children}
         <script

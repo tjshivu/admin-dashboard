@@ -17,7 +17,7 @@ const Footer = dynamic(() => import('@/components/Footer'), {
 
 export default function Home() {
   return (
-    <main className="bg-white min-h-screen text-[#18181b] font-sans selection:bg-[#D4AF37] selection:text-white flex flex-col relative overflow-hidden">
+    <main className="bg-white min-h-screen text-[#09090b] font-sans selection:bg-[#D4AF37] selection:text-black flex flex-col relative overflow-hidden">
 
       {/* Hero Section */}
       <div className="flex-1 flex flex-col lg:flex-row items-center justify-center pt-32 pb-16 px-6 md:px-12 lg:px-24 relative z-10 gap-12 lg:gap-24 transition-all duration-700 ease-in-out bg-white border-b border-[#D4AF37]/10">
@@ -29,7 +29,7 @@ export default function Home() {
             transition={{ duration: 0.8 }}
           >
             <AnimatedShinyText className="inline-flex items-center justify-center lg:justify-start px-4 py-2">
-              <span className="text-5xl md:text-7xl lg:text-8xl font-bold tracking-tighter leading-tight text-[#18181b]">
+              <span className="text-5xl md:text-7xl lg:text-8xl font-bold tracking-tighter leading-tight text-[#09090b]">
                 Discover.<br />
                 Trust.<br />
                 Book.
@@ -41,7 +41,7 @@ export default function Home() {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ delay: 0.4, duration: 0.8 }}
-            className="text-[#18181b]/60 text-lg md:text-xl font-medium leading-relaxed max-w-xl mx-auto lg:mx-0"
+            className="text-[#09090b]/60 text-lg md:text-xl font-medium leading-relaxed max-w-xl mx-auto lg:mx-0"
           >
             BrikUp connects you with verified local professionals so you can find the right service and book with confidence.
           </motion.p>
@@ -52,15 +52,15 @@ export default function Home() {
           initial={{ opacity: 0, scale: 0.9 }}
           animate={{ opacity: 1, scale: 1 }}
           transition={{ delay: 0.6, duration: 0.8 }}
-          className="flex-1 w-full max-w-[550px] flex justify-center lg:justify-end"
+          className="flex-1 w-full max-w-[500px] flex justify-center lg:justify-end"
         >
-          <div className="relative w-full aspect-square max-h-[450px] flex items-center justify-center">
+          <div className="relative w-full aspect-square max-h-[460px] flex items-center justify-center rounded-3xl overflow-hidden">
             <Image
               src="/images/hero-illustrations/barber_men.jpg"
               alt="Professional Service"
               width={600}
               height={600}
-              className="object-contain"
+              className="object-cover"
               priority
             />
           </div>
@@ -68,7 +68,7 @@ export default function Home() {
       </div>
 
       {/* Trust Section */}
-      <section className="bg-white py-20 px-6 md:px-12 border-b border-[#D4AF37]/10 relative z-10">
+      <section className="bg-[#fafafa] py-20 px-6 md:px-12 border-b border-[#D4AF37]/10 relative z-10">
         <div className="max-w-7xl mx-auto">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
             <motion.div
@@ -78,11 +78,11 @@ export default function Home() {
               transition={{ duration: 0.8 }}
               className="space-y-6"
             >
-              <h2 className="text-3xl md:text-5xl font-bold tracking-tighter text-[#18181b]">
-                How BrikUp Handles Trust
+              <h2 className="text-3xl md:text-5xl font-bold tracking-tighter text-[#09090b]">
+                Why Professionals Trust BrikUp
               </h2>
-              <p className="text-[#18181b]/60 text-lg md:text-xl leading-relaxed max-w-xl">
-                We verify professionals and provide transparent information so users can confidently choose the right service provider.
+              <p className="text-[#09090b]/60 text-lg md:text-xl leading-relaxed max-w-xl">
+                We verify every professional and surface transparent information, so you can always choose the right expert with confidence.
               </p>
             </motion.div>
 
@@ -91,16 +91,19 @@ export default function Home() {
               whileInView={{ opacity: 1, scale: 1 }}
               viewport={{ once: true }}
               transition={{ duration: 0.8 }}
-              className="relative p-8 rounded-3xl border border-[#D4AF37]/20 bg-[#D4AF37]/5 backdrop-blur-sm"
+              className="relative p-10 rounded-3xl border border-[#D4AF37]/30 bg-[#f9f9f9] backdrop-blur-sm"
             >
               <div className="grid grid-cols-2 gap-6">
                 {[
-                  { label: "Verified Profiles", value: "100%" },
-                  { label: "Real Reviews", value: "Trusted" }
+                  { label: "Verified Professionals", value: "100%", sub: "Profile checks" },
+                  { label: "Authentic Reviews", value: "Real", sub: "Community vetted" },
+                  { label: "Trusted Bookings", value: "Fast", sub: "Same-day available" },
+                  { label: "Local Coverage", value: "Live", sub: "Bengaluru & beyond" }
                 ].map((stat) => (
-                  <div key={stat.label} className="space-y-1">
-                    <p className="text-[#18181b] font-bold text-2xl">{stat.value}</p>
-                    <p className="text-[#18181b]/40 text-xs uppercase tracking-widest font-semibold">{stat.label}</p>
+                  <div key={stat.label} className="space-y-1 p-4 rounded-2xl bg-white/[0.03] border border-white/5">
+                    <p className="text-[#D4AF37] font-bold text-2xl font-display">{stat.value}</p>
+                    <p className="text-[#09090b] text-sm font-semibold">{stat.label}</p>
+                    <p className="text-[#09090b]/40 text-xs">{stat.sub}</p>
                   </div>
                 ))}
               </div>

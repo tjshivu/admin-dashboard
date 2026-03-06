@@ -15,7 +15,7 @@ export default function Footer() {
     const serviceCategories = ["Men's Salon", "Women's Salon", "Bridal & Makeup", "Tattoo"];
 
     return (
-        <footer className="relative bg-black border-t border-white/10 pt-12 md:pt-16 pb-0 overflow-hidden text-center">
+        <footer className="relative bg-[#120A06] border-t border-white/10 pt-12 md:pt-16 pb-0 overflow-hidden text-center">
             <div className="max-w-7xl mx-auto px-6 md:px-12 mb-12 relative z-10 text-left">
                 {/* Main Grid */}
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-12 lg:gap-8">
@@ -67,7 +67,7 @@ export default function Footer() {
             </div>
 
             {/* Bottom Bar */}
-            <div className="w-full max-w-7xl mx-auto px-4 sm:px-6 md:px-12 flex flex-col md:flex-row justify-between items-center py-4 sm:py-6 border-t border-white/10 relative z-10 bg-black">
+            <div className="w-full max-w-7xl mx-auto px-4 sm:px-6 md:px-12 flex flex-col md:flex-row justify-between items-center py-4 sm:py-6 border-t border-white/10 relative z-10 bg-[#120A06]">
                 <p className="text-muted-foreground text-xs mb-4 md:mb-0">
                     &copy; 2026 BrikUp Inc. All rights reserved.
                 </p>

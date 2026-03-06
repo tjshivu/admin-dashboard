@@ -10,18 +10,14 @@
  * - Includes custom keyframes for animations (marquee, float, shimmer).
  */
 @theme {
-  --color-background: #ffffff;
-  /* white */
-  --color-foreground: #09090b;
-  /* zinc-950 */
-  --color-card-bg: #f4f4f5;
-  /* zinc-100 */
-  --color-text-muted: #71717a;
-  /* zinc-500 */
-  --color-border-subtle: #e4e4e7;
-  /* zinc-200 */
-  --color-accent: #18181b;
-  /* zinc-900 */
+  --color-background: #000000;
+  --color-foreground: #ffffff;
+  --color-card-bg: #111111;
+  --color-text-muted: #a0a0a0;
+  --color-border-subtle: #2a2a2a;
+  --color-accent: #D4AF37;
+  --color-gold: #D4AF37;
+  --color-gold-muted: rgba(212, 175, 55, 0.15);
 
   --font-sans: var(--font-sans), ui-sans-serif, system-ui, sans-serif;
   --font-display: var(--font-display), "Titillium Web", ui-sans-serif, system-ui, sans-serif;
@@ -93,7 +89,7 @@
 /* Custom utilities */
 @layer utilities {
   .glass-card {
-    @apply bg-white/60 backdrop-blur-xl border border-black/5 shadow-sm;
+    @apply bg-white/5 backdrop-blur-xl border border-[#D4AF37]/20 shadow-sm;
   }
 }
 
@@ -103,7 +99,7 @@ html {
 }
 
 body {
-  @apply bg-background text-foreground font-sans antialiased selection:bg-black selection:text-white;
+  @apply bg-background text-foreground font-sans antialiased selection:bg-[#D4AF37] selection:text-black;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
@@ -150,21 +146,21 @@ body {
 
 :root {
   --radius: 0.625rem;
-  --background: oklch(1 0 0);
-  --foreground: oklch(0.145 0 0);
-  --card: oklch(1 0 0);
-  --card-foreground: oklch(0.145 0 0);
-  --primary: oklch(0.205 0 0);
-  --primary-foreground: oklch(0.985 0 0);
-  --secondary: oklch(0.97 0 0);
-  --secondary-foreground: oklch(0.205 0 0);
-  --muted: oklch(0.97 0 0);
-  --muted-foreground: oklch(0.556 0 0);
-  --accent: oklch(0.97 0 0);
-  --accent-foreground: oklch(0.205 0 0);
-  --border: oklch(0.922 0 0);
-  --input: oklch(0.922 0 0);
-  --ring: oklch(0.708 0 0);
+  --background: #ffffff;
+  --foreground: #09090b;
+  --card: #f9f9f9;
+  --card-foreground: #09090b;
+  --primary: #D4AF37;
+  --primary-foreground: #000000;
+  --secondary: #1a1a1a;
+  --secondary-foreground: #ffffff;
+  --muted: #1a1a1a;
+  --muted-foreground: #a0a0a0;
+  --accent: #D4AF37;
+  --accent-foreground: #000000;
+  --border: #2a2a2a;
+  --input: #f4f4f4;
+  --ring: #D4AF37;
 }
 
 @layer base {

@@ -42,11 +42,11 @@ export default function Header() {
                 }}
                 animate={hidden ? "hidden" : "visible"}
                 transition={{ duration: 0.3, ease: "easeInOut" }}
-                className="fixed top-0 left-0 w-full z-50 bg-white/80 backdrop-blur-md border-b border-[#D4AF37]/20 shadow-sm"
+                className="fixed top-0 left-0 w-full z-50 bg-white/90 backdrop-blur-md border-b border-[#D4AF37]/20 shadow-sm"
             >
                 <div className="max-w-7xl mx-auto px-6 h-20 flex items-center justify-between">
                     {/* Logo */}
-                    <Link href="/" className="font-display text-2xl font-bold tracking-tight text-[#18181b] hover:text-[#D4AF37] transition-all">
+                    <Link href="/" className="font-display text-2xl font-bold tracking-tight text-[#09090b] hover:text-[#D4AF37] transition-all">
                         BrikUp
                     </Link>
 
@@ -58,7 +58,7 @@ export default function Header() {
                                     {index > 0 && <div className="h-4 w-[1px] bg-[#D4AF37]/20 mx-4" />}
                                     <Link
                                         href={item.href}
-                                        className="text-sm font-medium text-[#18181b]/70 hover:text-[#18181b] transition-colors"
+                                        className="text-sm font-medium text-[#09090b]/60 hover:text-[#D4AF37] transition-colors"
                                     >
                                         {item.label}
                                     </Link>
@@ -68,7 +68,7 @@ export default function Header() {
 
                         <div className="ml-8 h-4 w-[1px] bg-[#D4AF37]/20 mr-8" />
 
-                        <button className="text-sm font-bold text-[#18181b] hover:text-[#D4AF37] transition-all flex items-center gap-1">
+                        <button className="text-sm font-bold bg-[#D4AF37] text-black px-4 py-1.5 rounded-full hover:bg-[#c9a227] transition-all flex items-center gap-1">
                             Get App
                         </button>
                     </nav>
@@ -76,7 +76,7 @@ export default function Header() {
                     {/* Mobile Toggle */}
                     <button
                         onClick={() => setMenuOpen(!menuOpen)}
-                        className="md:hidden w-10 h-10 flex items-center justify-center text-[#18181b]"
+                        className="md:hidden w-10 h-10 flex items-center justify-center text-[#09090b]"
                         aria-label="Toggle menu"
                     >
                         {menuOpen ? <X size={24} /> : <Menu size={24} />}
@@ -95,15 +95,15 @@ export default function Header() {
                             <div className="flex flex-col py-4 px-6 space-y-4">
                                 {navLinks.map((item) => (
                                     <Link
-                                        key={item.label}
+                                        key={item.href}
                                         href={item.href}
                                         onClick={() => setMenuOpen(false)}
-                                        className="text-lg font-medium text-[#18181b]/70 hover:text-[#18181b] transition-colors"
+                                        className="text-lg font-medium text-[#09090b]/60 hover:text-[#D4AF37] transition-colors"
                                     >
                                         {item.label}
                                     </Link>
                                 ))}
-                                <button className="text-lg font-bold text-[#18181b] pt-2 border-t border-[#D4AF37]/20">
+                                <button className="text-lg font-bold text-[#D4AF37] pt-2 border-t border-[#D4AF37]/20">
                                     Get App
                                 </button>
                             </div>
