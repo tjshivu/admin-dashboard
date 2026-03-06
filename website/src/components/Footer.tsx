@@ -1,6 +1,6 @@
 'use client';
 
-import { Facebook, Twitter, Instagram, Linkedin, Send, MapPin, Mail } from 'lucide-react';
+import { MapPin } from 'lucide-react';
 import Link from 'next/link';
 
 

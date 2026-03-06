@@ -5,7 +5,7 @@ import { usePathname } from 'next/navigation';
 import { motion, useScroll, useMotionValueEvent, AnimatePresence } from 'framer-motion';
 import { useState } from 'react';
 import { Menu, X } from 'lucide-react';
-import { cn } from '@/lib/utils';
+
 
 export default function Header() {
     const pathname = usePathname();

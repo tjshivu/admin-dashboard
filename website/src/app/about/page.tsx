@@ -1,6 +1,5 @@
 import type { Metadata } from "next";
-import Image from "next/image";
-import Link from "next/link";
+
 import { MapPin, Mail } from "lucide-react";
 
 export const metadata: Metadata = {
@@ -28,33 +27,7 @@ export default function AboutPage() {
                 </p>
             </section>
 
-            {/* Our Story - uncomment when ready
-            <section className="max-w-5xl mx-auto px-5 sm:px-6 md:px-12 mb-16 md:mb-24">
-                <h2 className="font-display text-2xl sm:text-3xl md:text-4xl font-bold tracking-tight text-foreground mb-4">
-                    Our Story
-                </h2>
-                <div className="bg-background rounded-3xl border border-border p-6 sm:p-8 md:p-10">
-                    <p className="text-muted-foreground text-sm sm:text-base md:text-lg leading-relaxed mb-4">
-                        We started with a simple belief — finding a reliable
-                        salon stylist, makeup artist, or tattoo creative shouldn&apos;t
-                        involve endless scrolling and hoping for the best. You deserve
-                        a seamless, trusted booking journey from discovery to the final result.
-                    </p>
-                    <p className="text-muted-foreground text-sm sm:text-base md:text-lg leading-relaxed mb-4">
-                        We set out to build a platform where every service professional is
-                        verified, every portfolio is authentic, and every interaction is backed
-                        by community trust. No runarounds, no guesswork — just expert artists
-                        ready to bring your vision to life.
-                    </p>
-                    <p className="text-muted-foreground text-sm sm:text-base md:text-lg leading-relaxed">
-                        Today, we connect individuals with top-rated local professionals
-                        across key creative services, empowering people to book with absolute confidence.
-                    </p>
-                </div>
-            </section>
-            */}
 
-            {/* Values */}
             {/* Contact / Office */}
             <section className="max-w-5xl mx-auto px-5 sm:px-6 md:px-12 mb-16 md:mb-24">
                 <h2 className="font-display text-2xl sm:text-3xl md:text-4xl font-bold tracking-tight text-[#09090b] mb-8">

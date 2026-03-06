@@ -72,9 +72,9 @@ export default function ServicesPage() {
                                 {category.services.map((service, sIdx) => (
                                     <div
                                         key={sIdx}
-                                        className="px-4 py-2 rounded-full border border-[#D4AF37]/60 text-sm md:text-base font-medium whitespace-nowrap bg-[#f9f9f9] backdrop-blur-sm shadow-sm"
+                                        className="px-4 py-2 rounded-full border border-[#D4AF37]/40 text-sm md:text-base font-medium whitespace-nowrap bg-[#D4AF37]/10 shadow-sm"
                                     >
-                                        <AnimatedShinyText className="text-[#09090b]/60">
+                                        <AnimatedShinyText className="text-[#09090b]">
                                             {service}
                                         </AnimatedShinyText>
                                     </div>

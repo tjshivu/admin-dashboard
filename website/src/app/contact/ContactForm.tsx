@@ -52,17 +52,20 @@ export default function ContactForm() {
                         <form className="flex flex-col gap-3" onSubmit={handleSubmit}>
                             <input
                                 type="text"
+                                name="name"
                                 placeholder="Your name"
                                 required
                                 className="bg-white border border-[#e5e5e5] rounded-xl px-4 py-3 text-sm text-[#09090b] placeholder:text-[#09090b]/30 outline-none focus:border-[#D4AF37]/50 transition-colors w-full"
                             />
                             <input
                                 type="email"
+                                name="email"
                                 placeholder="Email address"
                                 required
                                 className="bg-white border border-[#e5e5e5] rounded-xl px-4 py-3 text-sm text-[#09090b] placeholder:text-[#09090b]/30 outline-none focus:border-[#D4AF37]/50 transition-colors w-full"
                             />
                             <textarea
+                                name="message"
                                 placeholder="Your message"
                                 rows={4}
                                 required

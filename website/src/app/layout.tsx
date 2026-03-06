@@ -29,7 +29,7 @@ export const metadata: Metadata = {
   openGraph: {
     type: "website",
     locale: "en_US",
-    url: "https://brikuptech.com",
+    url: process.env.NEXT_PUBLIC_SITE_URL,
     title: "BrikUp - Find Trusted Pros",
     description: "Discover, compare, and book trusted service professionals in your neighborhood.",
     siteName: "BrikUp",
@@ -41,7 +41,7 @@ export const metadata: Metadata = {
     creator: "@brikup",
   },
   alternates: {
-    canonical: "https://brikuptech.com",
+    canonical: process.env.NEXT_PUBLIC_SITE_URL,
   },
 };
 

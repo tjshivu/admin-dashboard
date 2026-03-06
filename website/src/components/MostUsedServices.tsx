@@ -28,19 +28,16 @@ const mostUsedServices = [
 
 export default function MostUsedServices() {
     return (
-        <section className="w-full px-6 md:px-12 py-20 relative z-10 bg-white">
+        <section className="max-w-7xl mx-auto w-full px-6 md:px-12 py-20 relative z-10 bg-white">
             <div className="max-w-7xl mx-auto">
-                <motion.div
-                    initial={{ opacity: 0, y: 20 }}
-                    whileInView={{ opacity: 1, y: 0 }}
-                    viewport={{ once: true }}
-                    className="mb-16 text-center"
-                >
-                    <p className="text-[#D4AF37] text-xs uppercase tracking-[0.3em] font-semibold mb-3">What We Offer</p>
-                    <h2 className="text-[#09090b] text-3xl md:text-5xl font-bold tracking-tighter">
+                <div className="mb-12">
+                    <p className="text-[#D4AF37] text-xs uppercase tracking-[0.3em] font-semibold mb-3">
+                        What We Offer
+                    </p>
+                    <h2 className="font-display text-3xl md:text-4xl font-bold tracking-tight text-[#09090b]">
                         Most Used Services
                     </h2>
-                </motion.div>
+                </div>
 
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
                     {mostUsedServices.map((service, idx) => (
@@ -61,7 +58,7 @@ export default function MostUsedServices() {
                                 <div className="relative w-full h-full transform group-hover:scale-105 transition-transform duration-500">
                                     <Image
                                         src={service.image}
-                                        alt={service.title}
+                                        alt={`${service.title} – ${service.desc}`}
                                         fill
                                         className="object-contain"
                                         loading="lazy"

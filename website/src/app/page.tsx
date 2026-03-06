@@ -57,7 +57,7 @@ export default function Home() {
           <div className="relative w-full aspect-square max-h-[460px] flex items-center justify-center rounded-3xl overflow-hidden">
             <Image
               src="/images/hero-illustrations/barber_men.jpg"
-              alt="Professional Service"
+              alt="BrikUp barber professional in Bengaluru"
               width={600}
               height={600}
               className="object-cover"
