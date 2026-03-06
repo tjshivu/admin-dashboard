@@ -16,7 +16,7 @@ export default function ContactForm() {
     };
 
     return (
-        <div className="relative bg-zinc-950 border border-zinc-800 rounded-3xl p-6 sm:p-8 w-full shadow-2xl shadow-zinc-950/20">
+        <div className="relative bg-primary border border-border rounded-3xl p-6 sm:p-8 w-full shadow-2xl shadow-zinc-950/20">
             <AnimatePresence mode="wait">
                 {sent ? (
                     <motion.div
@@ -34,8 +34,8 @@ export default function ContactForm() {
                         >
                             <CheckCircle size={56} className="text-emerald-400" />
                         </motion.div>
-                        <h3 className="font-display text-2xl font-bold text-white">Sent!</h3>
-                        <p className="text-zinc-400 text-sm text-center">We&apos;ll get back to you shortly.</p>
+                        <h3 className="font-display text-2xl font-bold text-primary-foreground">Sent!</h3>
+                        <p className="text-muted-foreground text-sm text-center">We&apos;ll get back to you shortly.</p>
                     </motion.div>
                 ) : (
                     <motion.div
@@ -45,8 +45,8 @@ export default function ContactForm() {
                         exit={{ opacity: 0 }}
                         transition={{ duration: 0.2 }}
                     >
-                        <h3 className="font-display text-xl sm:text-2xl font-bold text-white mb-1">Send a Message</h3>
-                        <p className="text-zinc-500 text-xs sm:text-sm mb-5 font-light leading-relaxed">
+                        <h3 className="font-display text-xl sm:text-2xl font-bold text-primary-foreground mb-1">Send a Message</h3>
+                        <p className="text-muted-foreground text-xs sm:text-sm mb-5 font-light leading-relaxed">
                             Fill out the form and we&apos;ll be in touch.
                         </p>
                         <form className="flex flex-col gap-3" onSubmit={handleSubmit}>
@@ -54,23 +54,23 @@ export default function ContactForm() {
                                 type="text"
                                 placeholder="Your name"
                                 required
-                                className="bg-zinc-900 border border-zinc-800 rounded-xl px-4 py-3 text-sm text-white placeholder:text-zinc-600 outline-none focus:border-white/30 transition-colors w-full"
+                                className="bg-primary border border-border rounded-xl px-4 py-3 text-sm text-primary-foreground placeholder:text-zinc-600 outline-none focus:border-white/30 transition-colors w-full"
                             />
                             <input
                                 type="email"
                                 placeholder="Email address"
                                 required
-                                className="bg-zinc-900 border border-zinc-800 rounded-xl px-4 py-3 text-sm text-white placeholder:text-zinc-600 outline-none focus:border-white/30 transition-colors w-full"
+                                className="bg-primary border border-border rounded-xl px-4 py-3 text-sm text-primary-foreground placeholder:text-zinc-600 outline-none focus:border-white/30 transition-colors w-full"
                             />
                             <textarea
                                 placeholder="Your message"
                                 rows={4}
                                 required
-                                className="bg-zinc-900 border border-zinc-800 rounded-xl px-4 py-3 text-sm text-white placeholder:text-zinc-600 outline-none focus:border-white/30 transition-colors w-full resize-none"
+                                className="bg-primary border border-border rounded-xl px-4 py-3 text-sm text-primary-foreground placeholder:text-zinc-600 outline-none focus:border-white/30 transition-colors w-full resize-none"
                             />
                             <button
                                 type="submit"
-                                className="bg-white text-black rounded-xl px-5 py-3 text-sm font-semibold hover:bg-zinc-200 transition-colors flex items-center justify-center gap-2 w-full mt-2 active:scale-[0.98]"
+                                className="bg-background text-foreground rounded-xl px-5 py-3 text-sm font-semibold hover:bg-zinc-200 transition-colors flex items-center justify-center gap-2 w-full mt-2 active:scale-[0.98]"
                             >
                                 <Send size={14} />
                                 Send Message
