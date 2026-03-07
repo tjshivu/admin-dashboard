@@ -20,7 +20,8 @@ import {
     ReviewData,
     IntentAnalytics,
     TrustTrendGraphic,
-    DailyTrendSummary
+    DailyTrendSummary,
+    ProviderPerformanceMetrics
 } from "@/types/analytics"
 import { useMemo } from "react"
 
@@ -189,6 +190,20 @@ export function useDailyTrendSummary(day: string) {
         enabled: Boolean(day),
         retry: false,
         refetchOnWindowFocus: false
+    })
+}
+
+export function useProviderPerformanceMetrics(providerId: string, lastDays: number = 7) {
+    return useQuery<ProviderPerformanceMetrics>({
+        queryKey: ["provider-performance-metrics", providerId, lastDays],
+        queryFn: async () => {
+            const res = await get<ProviderPerformanceMetrics>(`/analytics/provider/${providerId}/metrics?lastDays=${lastDays}`)
+            if (!res?.success) throw new Error("Failed to fetch provider metrics")
+            return res.data
+        },
+        enabled: Boolean(providerId),
+        staleTime: 5 * 60 * 1000,
+        retry: false
     })
 }
 

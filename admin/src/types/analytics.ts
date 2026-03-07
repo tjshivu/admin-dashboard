@@ -258,6 +258,19 @@ export interface TrustTrendGraphic {
   };
 }
 
+// --- Provider Performance Metrics (Admin) ---
+export interface ProviderPerformanceMetrics {
+  providerId: string;
+  period: string;
+  acceptanceRate: number;
+  completionRate: number;
+  cancellationRate: number;
+  complaintRatio: number;
+  repeatUserRatio: number;
+  totalIncome: number;
+  averageRating: number;
+}
+
 // --- Daily Trend Summary (Platform-wide intent) ---
 
 export interface DailyTrendSummary {

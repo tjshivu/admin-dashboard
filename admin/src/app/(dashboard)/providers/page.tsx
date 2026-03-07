@@ -4,11 +4,11 @@
 import React, { useEffect, useState } from "react"
 import { useQuery } from "@tanstack/react-query"
 import { api, get, patch, post, logAdminAction } from "@/lib/api"
-import { useTrustTrendGraphic } from "@/hooks/use-analytics-hooks" // trend
+import { useTrustTrendGraphic, useProviderPerformanceMetrics } from "@/hooks/use-analytics-hooks" // trend
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
-import { X, Search, Download, FileText } from "lucide-react"
+import { X, Search, Download, FileText, AlertTriangle } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { useToast } from "@/components/providers/toast-provider"
 import { PageContainer } from "@/components/ui/page-container"
@@ -53,6 +53,7 @@ interface Provider {
     documents?: ProviderDocument[]
     aadhaarInfo?: AadhaarInfo
     rejection_reasons?: string[]
+    delisting_warning_start?: string | null
 }
 
 export default function ProvidersPage() {
@@ -73,6 +74,9 @@ export default function ProvidersPage() {
         window.addEventListener('keydown', handleKeyDown)
         return () => window.removeEventListener('keydown', handleKeyDown)
     }, [])
+
+    const { data: trendData } = useTrustTrendGraphic(selectedProvider?._id || "", 30)
+    const { data: perfMetrics, isLoading: perfLoading } = useProviderPerformanceMetrics(selectedProvider?._id || "", 30)
 
     const loadProviders = async () => {
         setLoading(true)
@@ -444,13 +448,20 @@ export default function ProvidersPage() {
                                                     </span>
                                                 </TableCell>
                                                 <TableCell>
-                                                    <Badge variant={
-                                                        p.trust_status === 'VERIFIED' || p.trust_status === 'TRUSTED' ? 'success' :
-                                                            p.trust_status === 'PENDING_VERIFICATION' || p.trust_status === 'UNLISTED' ? 'warning' :
-                                                                p.trust_status === 'SUSPENDED' || p.trust_status === 'REJECTED' ? 'danger' : 'default'
-                                                    } className={p.status === 'deleted' ? 'bg-slate-100 text-slate-500 font-normal shadow-none' : ''}>
-                                                        {p.trust_status || p.status}
-                                                    </Badge>
+                                                    <div className="flex items-center gap-2">
+                                                        <Badge variant={
+                                                            p.trust_status === 'VERIFIED' || p.trust_status === 'TRUSTED' ? 'success' :
+                                                                p.trust_status === 'PENDING_VERIFICATION' || p.trust_status === 'UNLISTED' ? 'warning' :
+                                                                    p.trust_status === 'SUSPENDED' || p.trust_status === 'REJECTED' ? 'danger' : 'default'
+                                                        } className={p.status === 'deleted' ? 'bg-slate-100 text-slate-500 font-normal shadow-none' : ''}>
+                                                            {p.trust_status || p.status}
+                                                        </Badge>
+                                                        {p.delisting_warning_start && (
+                                                            <div className="flex items-center text-rose-500" title="Grace Period: Delisting Warning Active">
+                                                                <AlertTriangle className="h-4 w-4" />
+                                                            </div>
+                                                        )}
+                                                    </div>
                                                 </TableCell>
                                             </TableRow>
                                         ))
@@ -678,6 +689,57 @@ export default function ProvidersPage() {
 
                             {detailTab === "Status" && (
                                 <div className="space-y-5">
+                                    {/* High-Level Performance Metrics */}
+                                    <div className="grid grid-cols-2 gap-3 pb-2">
+                                        <div className="p-3 rounded-xl bg-slate-50 dark:bg-neutral-800/50 border border-slate-100 dark:border-neutral-800">
+                                            <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest block mb-1">Cancellation Rate</span>
+                                            <div className="flex items-baseline gap-1">
+                                                <span className={cn(
+                                                    "text-lg font-black",
+                                                    (perfMetrics?.cancellationRate ?? 0) > 0.25 ? "text-rose-600" : "text-slate-900 dark:text-white"
+                                                )}>
+                                                    {perfMetrics ? `${(perfMetrics.cancellationRate * 100).toFixed(1)}%` : "—"}
+                                                </span>
+                                                {(perfMetrics?.cancellationRate ?? 0) > 0.25 && <AlertTriangle className="h-3 w-3 text-rose-500" />}
+                                            </div>
+                                            <span className="text-[9px] text-slate-500 italic">Threshold: &lt;25%</span>
+                                        </div>
+                                        <div className="p-3 rounded-xl bg-slate-50 dark:bg-neutral-800/50 border border-slate-100 dark:border-neutral-800">
+                                            <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest block mb-1">Complaint Ratio</span>
+                                            <div className="flex items-baseline gap-1">
+                                                <span className={cn(
+                                                    "text-lg font-black",
+                                                    (perfMetrics?.complaintRatio ?? 0) > 0.15 ? "text-rose-600" : "text-slate-900 dark:text-white"
+                                                )}>
+                                                    {perfMetrics ? `${(perfMetrics.complaintRatio * 100).toFixed(1)}%` : "—"}
+                                                </span>
+                                                {(perfMetrics?.complaintRatio ?? 0) > 0.20 && <AlertTriangle className="h-3 w-3 text-rose-500" />}
+                                            </div>
+                                            <span className="text-[9px] text-slate-500 italic">Threshold: &lt;20%</span>
+                                        </div>
+                                        <div className="p-3 rounded-xl bg-slate-50 dark:bg-neutral-800/50 border border-slate-100 dark:border-neutral-800">
+                                            <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest block mb-1">Completion Rate</span>
+                                            <div className="flex items-baseline gap-1">
+                                                <span className={cn(
+                                                    "text-lg font-black",
+                                                    (perfMetrics?.completionRate ?? 0) < 0.85 ? "text-amber-600" : "text-emerald-600"
+                                                )}>
+                                                    {perfMetrics ? `${(perfMetrics.completionRate * 100).toFixed(1)}%` : "—"}
+                                                </span>
+                                            </div>
+                                            <span className="text-[9px] text-slate-500 italic">Target: &gt;85%</span>
+                                        </div>
+                                        <div className="p-3 rounded-xl bg-slate-50 dark:bg-neutral-800/50 border border-slate-100 dark:border-neutral-800">
+                                            <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest block mb-1">Avg Rating</span>
+                                            <div className="flex items-baseline gap-1">
+                                                <span className="text-lg font-black text-slate-900 dark:text-white">
+                                                    {perfMetrics ? perfMetrics.averageRating.toFixed(2) : "—"}
+                                                </span>
+                                                <span className="text-[10px] font-bold text-amber-500">★</span>
+                                            </div>
+                                            <span className="text-[9px] text-slate-500 italic">30-Day Avg</span>
+                                        </div>
+                                    </div>
                                     {/* Trust Status */}
                                     <div className="flex items-center gap-3">
                                         <span className="text-sm text-slate-500 font-medium w-[130px]">Trust Status</span>
@@ -720,6 +782,54 @@ export default function ProvidersPage() {
                                             </span>
                                         </div>
                                     </div>
+
+                                    {/* Delisting Warning */}
+                                    {selectedProvider.delisting_warning_start && (
+                                        <div className="p-4 rounded-xl bg-rose-50 dark:bg-rose-950/20 border border-rose-100 dark:border-rose-900/30 space-y-2">
+                                            <div className="flex items-center gap-2 text-rose-600 dark:text-rose-400">
+                                                <AlertTriangle className="h-4 w-4" />
+                                                <span className="text-xs font-bold uppercase tracking-wider">Performance Warning Active</span>
+                                            </div>
+                                            <p className="text-sm text-rose-700 dark:text-rose-300">
+                                                This provider is in a 7-day grace period due to low performance or high complaints. Failure to improve will lead to automatic suspension.
+                                            </p>
+                                            <div className="flex justify-between text-[11px] font-medium text-rose-600/70 dark:text-rose-400/70 pt-1">
+                                                <span>Started: {new Date(selectedProvider.delisting_warning_start).toLocaleDateString()}</span>
+                                                <span>Grace Period Ends: {new Date(new Date(selectedProvider.delisting_warning_start).getTime() + 7 * 24 * 60 * 60 * 1000).toLocaleDateString()}</span>
+                                            </div>
+
+                                            {trendData?.summary?.topDecayReasons && trendData.summary.topDecayReasons.length > 0 && (
+                                                <div className="pt-2 border-t border-rose-200/50 dark:border-rose-800/50 mt-2">
+                                                    <span className="text-[10px] font-black text-rose-600/60 uppercase tracking-widest block mb-1">Top Decay Reasons (Delisting Drivers):</span>
+                                                    <div className="flex flex-wrap gap-1.5">
+                                                        {trendData.summary.topDecayReasons.map((r: any, i: number) => (
+                                                            <span key={i} className="text-[10px] bg-white/50 dark:bg-rose-950/40 px-2 py-0.5 rounded-md border border-rose-200/50 text-rose-700 dark:text-rose-300 font-bold">
+                                                                {r.reason.replace(/_/g, " ")}
+                                                            </span>
+                                                        ))}
+                                                    </div>
+                                                </div>
+                                            )}
+
+                                            {trendData?.summary?.recommendations && trendData.summary.recommendations.length > 0 && (
+                                                <div className="pt-2">
+                                                    <span className="text-[10px] font-black text-rose-600/60 uppercase tracking-widest block mb-1">Recommended Optimization:</span>
+                                                    <div className="space-y-1">
+                                                        {trendData.summary.recommendations.slice(0, 2).map((rec: any, i: number) => (
+                                                            <div key={i} className="text-[11px] text-rose-800 dark:text-rose-200 flex items-start gap-1.5">
+                                                                <span className="mt-1 w-1 h-1 rounded-full bg-rose-400 shrink-0" />
+                                                                {rec.action}
+                                                            </div>
+                                                        ))}
+                                                    </div>
+                                                </div>
+                                            )}
+
+                                            <div className="text-[9px] text-rose-500 italic pt-2 opacity-70">
+                                                * Trust scores below 10 or excessive complaint ratios trigger automated delisting.
+                                            </div>
+                                        </div>
+                                    )}
 
                                     {/* Rejection Reasons */}
                                     {selectedProvider.rejection_reasons && selectedProvider.rejection_reasons.length > 0 && (
