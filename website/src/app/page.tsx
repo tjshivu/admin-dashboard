@@ -1,7 +1,8 @@
 'use client';
 
 import dynamic from 'next/dynamic';
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
+import { useState, useEffect } from 'react';
 import { AnimatedShinyText } from "@/components/ui/animated-shiny-text";
 import Image from 'next/image';
 
@@ -15,7 +16,32 @@ const Footer = dynamic(() => import('@/components/Footer'), {
   ssr: false
 });
 
+const HERO_IMAGES = [
+  {
+    src: "/images/hero-illustrations/barber_men.jpg",
+    alt: "BrikUp barber professional in Bengaluru"
+  },
+  {
+    src: "/images/hero-illustrations/make_up_artist.png",
+    alt: "BrikUp makeup artist professional in Bengaluru"
+  },
+  {
+    src: "/images/hero-illustrations/tattoo_artist.jpg",
+    alt: "BrikUp tattoo artist professional in Bengaluru"
+  }
+];
+
 export default function Home() {
+  const [currentImageIndex, setCurrentImageIndex] = useState(0);
+
+  useEffect(() => {
+    const timer = setInterval(() => {
+      setCurrentImageIndex((prevIndex) => (prevIndex + 1) % HERO_IMAGES.length);
+    }, 3000); // Change image every 3 seconds
+
+    return () => clearInterval(timer);
+  }, []);
+
   return (
     <main className="bg-white min-h-screen text-[#09090b] font-sans selection:bg-[#D4AF37] selection:text-black flex flex-col relative overflow-hidden">
 
@@ -54,15 +80,25 @@ export default function Home() {
           transition={{ delay: 0.6, duration: 0.8 }}
           className="flex-1 w-full max-w-[500px] flex justify-center lg:justify-end"
         >
-          <div className="relative w-full aspect-square max-h-[460px] flex items-center justify-center rounded-3xl overflow-hidden">
-            <Image
-              src="/images/hero-illustrations/barber_men.jpg"
-              alt="BrikUp barber professional in Bengaluru"
-              width={600}
-              height={600}
-              className="object-cover"
-              priority
-            />
+          <div className="relative w-full aspect-square max-h-[460px] flex items-center justify-center rounded-3xl overflow-hidden bg-white">
+            <AnimatePresence mode="wait">
+              <motion.div
+                key={HERO_IMAGES[currentImageIndex].src}
+                initial={{ opacity: 0, x: 20 }}
+                animate={{ opacity: 1, x: 0 }}
+                exit={{ opacity: 0, x: -20 }}
+                transition={{ duration: 0.8, ease: "easeInOut" }}
+                className="absolute inset-0 w-full h-full"
+              >
+                <Image
+                  src={HERO_IMAGES[currentImageIndex].src}
+                  alt={HERO_IMAGES[currentImageIndex].alt}
+                  fill
+                  className="object-cover"
+                  priority
+                />
+              </motion.div>
+            </AnimatePresence>
           </div>
         </motion.div>
       </div>
@@ -97,8 +133,8 @@ export default function Home() {
                 {[
                   { label: "Verified Professionals", value: "100%", sub: "Profile checks" },
                   { label: "Authentic Reviews", value: "Real", sub: "Community vetted" },
-                  { label: "Trusted Bookings", value: "Fast", sub: "Same-day available" },
-                  { label: "Local Coverage", value: "Live", sub: "Bengaluru & beyond" }
+                  { label: "Easy Booking", value: "Simple", sub: "Confirm in seconds" },
+                  { label: "Instant Service", value: "Instant", sub: "Verified experts" }
                 ].map((stat) => (
                   <div key={stat.label} className="space-y-1 p-4 rounded-2xl bg-white/[0.03] border border-white/5">
                     <p className="text-[#D4AF37] font-bold text-2xl font-display">{stat.value}</p>
@@ -111,6 +147,7 @@ export default function Home() {
           </div>
         </div>
       </section>
+
 
       {/* Lazy loaded Most Used Services */}
       <div className="relative z-10 bg-white">

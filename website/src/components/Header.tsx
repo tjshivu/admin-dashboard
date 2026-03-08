@@ -68,8 +68,8 @@ export default function Header() {
 
                         <div className="ml-8 h-4 w-[1px] bg-[#D4AF37]/20 mr-8" />
 
-                        <button className="text-sm font-bold bg-[#D4AF37] text-black px-4 py-1.5 rounded-full hover:bg-[#c9a227] transition-all flex items-center gap-1">
-                            Get App
+                        <button className="text-sm font-bold bg-[#D4AF37] text-black px-4 py-1.5 rounded-full hover:bg-[#c9a227] transition-all flex items-center gap-1 cursor-default">
+                            App Coming Soon
                         </button>
                     </nav>
 
@@ -103,8 +103,8 @@ export default function Header() {
                                         {item.label}
                                     </Link>
                                 ))}
-                                <button className="text-lg font-bold text-[#D4AF37] pt-2 border-t border-[#D4AF37]/20">
-                                    Get App
+                                <button className="text-lg font-bold text-[#D4AF37] pt-2 border-t border-[#D4AF37]/20 cursor-default">
+                                    App Coming Soon
                                 </button>
                             </div>
                         </motion.div>

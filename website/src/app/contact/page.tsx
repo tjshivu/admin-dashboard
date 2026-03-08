@@ -1,6 +1,7 @@
 import type { Metadata } from 'next';
 import ContactForm from './ContactForm';
 import Footer from '@/components/Footer';
+import { MapPin, Mail } from "lucide-react";
 
 export const metadata: Metadata = {
     title: 'Contact Us',
@@ -20,8 +21,41 @@ export default function ContactPage() {
                     </p>
                 </div>
 
-                <div className="w-full max-w-md mx-auto">
-                    <ContactForm />
+                <div className="w-full flex flex-col items-center">
+                    <div className="w-full max-w-xl bg-[#f9f9f9] border border-[#D4AF37]/20 rounded-3xl p-8 mb-12 shadow-sm">
+                        <ContactForm />
+                    </div>
+
+                    <div className="w-full max-w-3xl grid grid-cols-1 md:grid-cols-2 gap-8 px-4">
+                        <div className="flex items-start gap-4 p-6 bg-white border border-[#D4AF37]/10 rounded-2xl shadow-sm">
+                            <div className="w-12 h-12 rounded-2xl bg-[#D4AF37]/5 border border-[#D4AF37]/20 flex items-center justify-center shrink-0 shadow-sm">
+                                <MapPin size={24} className="text-black" />
+                            </div>
+                            <div>
+                                <p className="font-display font-bold text-lg text-black mb-1">Our Office</p>
+                                <p className="text-[#09090b]/60 leading-relaxed text-sm">
+                                    #13, 7th A Cross Road,<br />
+                                    Gurudarshan Layout, Vidyaranyapura,<br />
+                                    Bengaluru - 560097
+                                </p>
+                            </div>
+                        </div>
+
+                        <div className="flex items-start gap-4 p-6 bg-white border border-[#D4AF37]/10 rounded-2xl shadow-sm">
+                            <div className="w-12 h-12 rounded-2xl bg-[#D4AF37]/5 border border-[#D4AF37]/20 flex items-center justify-center shrink-0 shadow-sm">
+                                <Mail size={24} className="text-black" />
+                            </div>
+                            <div>
+                                <p className="font-display font-bold text-lg text-black mb-1">Email Us</p>
+                                <a
+                                    href="mailto:contact@brikuptech.com"
+                                    className="text-[#09090b]/60 hover:text-[#D4AF37] transition-colors font-medium underline underline-offset-4 decoration-[#D4AF37]/30 break-all text-sm"
+                                >
+                                    contact@brikuptech.com
+                                </a>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </div>
             <Footer />

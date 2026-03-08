@@ -8,10 +8,10 @@ const serviceCategories = [
         title: "Men's Salon",
         services: [
             "Haircut",
-            "Beard Trim / Beard Styling",
+            "Beard Styling",
             "Hair Coloring",
             "Hair Treatment",
-            "Facial / Cleanup",
+            "Facial",
             "Head Massage"
         ]
     },
@@ -20,11 +20,11 @@ const serviceCategories = [
         services: [
             "Haircut & Styling",
             "Hair Coloring",
-            "Hair Spa / Treatments",
-            "Facial / Cleanup",
+            "Hair Spa",
+            "Facial",
             "Waxing",
             "Threading",
-            "Bleach / Detan"
+            "Detan"
         ]
     },
     {
@@ -44,7 +44,7 @@ const serviceCategories = [
             "Permanent Tattoo",
             "Temporary Tattoo",
             "Tattoo Cover-up",
-            "Tattoo Removal (laser)",
+            "Tattoo Removal",
             "Tattoo Design Consultation"
         ]
     }
