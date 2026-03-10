@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { Titillium_Web, Inter } from "next/font/google";
 import { Analytics } from "@vercel/analytics/next";
-import Header from "@/components/Header";
+import ConditionalHeader from "@/components/ConditionalHeader";
 import "./globals.css";
 
 const titillium = Titillium_Web({
@@ -67,7 +67,7 @@ export default function RootLayout({
 
       </head>
       <body className="antialiased bg-white text-[#09090b] selection:bg-[#D4AF37] selection:text-black font-sans">
-        <Header />
+        <ConditionalHeader />
         {children}
         <script
           type="application/ld+json"
