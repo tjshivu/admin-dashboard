@@ -91,7 +91,7 @@ const nextConfig: NextConfig = {
               "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
               "font-src 'self' https://fonts.gstatic.com",
               "img-src 'self' data: blob: https://randomuser.me https://api.qrserver.com https://h8DxKfmAPhn8O0p3.public.blob.vercel-storage.com",
-              "connect-src 'self' https://api.brikuptech.com",
+              `connect-src 'self' https://api.brikuptech.com${process.env.NODE_ENV === 'development' ? ' http://localhost:*' : ''}`,
               "frame-ancestors 'none'",
             ].join('; '),
           },

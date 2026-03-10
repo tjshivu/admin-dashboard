@@ -21,6 +21,7 @@ import {
 import { PageContainer } from "@/components/admin/ui/page-container"
 import { SectionHeader } from "@/components/admin/ui/section-header"
 import { Card, CardContent, CardHeader } from "@/components/admin/ui/card"
+import { Tabs, TabsList, TabsTrigger } from "@/components/admin/ui/tabs"
 import { SectionState } from "@/components/admin/ui/section-state"
 import { useAnalyticsData, useIntentAnalytics, useDailyTrendSummary } from "@/hooks/admin/use-analytics-hooks"
 import { SearchBookFunnel, DailyTrendSummary } from "@/types/admin/analytics"
@@ -32,13 +33,15 @@ const CHART_MARGIN = { top: 0, right: 60, left: 10, bottom: 0 } as const
 
 export default function AnalyticsPage() {
     const today = new Date().toISOString().split('T')[0]
-    const { allTime, daily } = useAnalyticsData(today, "current", "current")
+    const [timeRange, setTimeRange] = useState<'daily' | 'weekly' | 'monthly'>('daily')
+    const { allTime, daily, weekly, monthly } = useAnalyticsData(timeRange)
     const { data: intentRes, isLoading: isLoadingIntent } = useIntentAnalytics()
 
-    // Defaulting to daily for active data context
-    const activeData = daily.data
-    const isLoading = daily.isLoading
+    // active Data context depends on selection
+    const activeData = timeRange === 'daily' ? daily.data : timeRange === 'weekly' ? weekly?.data : monthly?.data
+    const isLoading = timeRange === 'daily' ? daily.isLoading : timeRange === 'weekly' ? weekly?.isLoading : monthly?.isLoading
     const summary = allTime.data
+    const isLive = timeRange === 'daily'
 
     const conversionRate = intentRes?.data?.data?.summary?.overallConversionRate || 0
 
@@ -49,19 +52,32 @@ export default function AnalyticsPage() {
     return (
         <PageContainer>
             <TooltipProvider delayDuration={100}>
-                <SectionHeader title="System Analytics" />
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
+                    <SectionHeader title="System Analytics" />
+                    <Tabs value={timeRange} onValueChange={(v) => setTimeRange(v as 'daily' | 'weekly' | 'monthly')} className="w-full sm:w-auto">
+                        <TabsList className="bg-white dark:bg-neutral-900 border border-slate-200 dark:border-neutral-800 p-1">
+                            <TabsTrigger value="daily" className="text-xs px-4 py-1.5 data-[state=active]:bg-violet-50 data-[state=active]:text-violet-700 dark:data-[state=active]:bg-violet-500/20 dark:data-[state=active]:text-violet-300">Daily</TabsTrigger>
+                            <TabsTrigger value="weekly" className="text-xs px-4 py-1.5 data-[state=active]:bg-violet-50 data-[state=active]:text-violet-700 dark:data-[state=active]:bg-violet-500/20 dark:data-[state=active]:text-violet-300">Weekly</TabsTrigger>
+                            <TabsTrigger value="monthly" className="text-xs px-4 py-1.5 data-[state=active]:bg-violet-50 data-[state=active]:text-violet-700 dark:data-[state=active]:bg-violet-500/20 dark:data-[state=active]:text-violet-300">Monthly</TabsTrigger>
+                        </TabsList>
+                    </Tabs>
+                </div>
 
                 {/* SECTION 1 — PLATFORM ACTIVITY */}
                 <div className="mb-10">
                     <SectionLabel label="Platform Activity" sub="User engagement & presence" />
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                         <MetricCard
-                            title="DAU"
-                            value={isLoading ? "..." : formatNumber(activeData?.dau || 0)}
-                            sub="Daily Active Users"
+                            title={isLive ? "DAU" : timeRange === 'weekly' ? "WAU" : "MAU"}
+                            value={isLoading ? "..." : formatNumber(
+                                isLive ? (activeData?.dau ?? 0)
+                                    : timeRange === 'weekly' ? (activeData?.wau ?? 0)
+                                        : (activeData?.mau ?? 0)
+                            )}
+                            sub="Active Users"
                             icon={<Users className="w-4 h-4 text-blue-500" />}
-                            isLive={true}
-                            description="Unique users active today. Updated: every 30 mins."
+                            isLive={isLive}
+                            description={isLive ? "Unique users active today." : `Unique active users for this ${timeRange} period.`}
                         />
                         <MetricCard
                             title="Total Users"
@@ -73,10 +89,10 @@ export default function AnalyticsPage() {
                         <MetricCard
                             title="Retention Rate"
                             value={isLoading ? "..." : `${((activeData?.userRetentionRate || 0) * 100).toFixed(1)}%`}
-                            sub="Day-over-Day Stickiness"
+                            sub={isLive ? "Day-over-Day Stickiness" : `${timeRange} Stickiness`}
                             icon={<Heart className="w-4 h-4 text-rose-500" />}
-                            isLive={true}
-                            description="% of yesterday's users who returned today. Updated: Live."
+                            isLive={isLive}
+                            description={isLive ? "% of yesterday's users who returned today." : `% of users retained this ${timeRange} period.`}
                         />
                     </div>
                 </div>
@@ -100,28 +116,28 @@ export default function AnalyticsPage() {
                             description="Lifetime total of completed services. Updated: Midnight."
                         />
                         <MetricCard
-                            title="Live Searches"
+                            title="Searches"
                             value={isLoading ? "..." : formatNumber(activeData?.searches || 0)}
-                            sub="Initiated Today"
+                            sub={`Initiated ${timeRange}`}
                             icon={<Target className="w-4 h-4 text-orange-500" />}
-                            isLive={true}
-                            description="Total user searches initiated today. Updated: Live."
+                            isLive={isLive}
+                            description={`Total user searches initiated in this ${timeRange} period.`}
                         />
                         <MetricCard
                             title="Booking Conversion"
-                            value={isLoadingIntent ? "..." : `${(conversionRate * 100).toFixed(1)}%`}
+                            value={isLoadingIntent ? "..." : `${((isLive ? conversionRate : (activeData?.conversionRate || 0)) * 100).toFixed(1)}%`}
                             sub="Search → Booking"
                             icon={<Target className="w-4 h-4 text-violet-500" />}
-                            isLive={true}
-                            description="% of searches that result in a booking. Updated: Live."
+                            isLive={isLive}
+                            description={`% of searches that result in a booking (${timeRange}).`}
                         />
                         <MetricCard
-                            title="Live Bookings"
+                            title="Bookings"
                             value={isLoading ? "..." : formatNumber(activeData?.bookings || 0)}
-                            sub="Initiated Today"
+                            sub={`Initiated ${timeRange}`}
                             icon={<Activity className="w-4 h-4 text-emerald-500" />}
-                            isLive={true}
-                            description="Total bookings initiated today. Updated: Live."
+                            isLive={isLive}
+                            description={`Total bookings initiated in this ${timeRange} period.`}
                         />
                     </div>
                 </div>
@@ -142,8 +158,8 @@ export default function AnalyticsPage() {
                             value={isLoading ? '...' : (activeData?.avgProviderTrustScore || 0).toFixed(2)}
                             sub="System quality avg"
                             icon={<ShieldCheck className="w-4 h-4 text-emerald-500" />}
-                            isLive={true}
-                            description="Mean trust score across all providers (0-100). Updated: Live."
+                            isLive={isLive}
+                            description="Mean trust score across all providers (0-100)."
                         />
                         <div className="grid grid-cols-2 gap-4">
                             <MetricCard
@@ -151,16 +167,16 @@ export default function AnalyticsPage() {
                                 value={isLoading ? '...' : formatNumber(activeData?.providersInDecay || 0)}
                                 sub="Trust declining"
                                 icon={<Activity className="w-4 h-4 text-rose-500" />}
-                                isLive={true}
-                                description="Providers whose scores dropped recently. Updated: Live."
+                                isLive={isLive}
+                                description="Providers whose scores dropped recently."
                             />
                             <MetricCard
                                 title="In Recovery"
                                 value={isLoading ? '...' : formatNumber(activeData?.providersInRecovery || 0)}
                                 sub="Rebuilding"
                                 icon={<Activity className="w-4 h-4 text-blue-500" />}
-                                isLive={true}
-                                description="Providers whose scores are improving. Updated: Live."
+                                isLive={isLive}
+                                description="Providers whose scores are improving."
                             />
                         </div>
                         <MetricCard
@@ -189,16 +205,16 @@ export default function AnalyticsPage() {
                             value={isLoading ? '...' : `${((activeData?.complaintResolutionRate || 0) * 100).toFixed(1)}%`}
                             sub="Closing efficiency"
                             icon={<ShieldCheck className="w-4 h-4 text-emerald-500" />}
-                            isLive={true}
-                            description="% of total complaints marked as resolved. Updated: Live."
+                            isLive={isLive}
+                            description="% of total complaints marked as resolved."
                         />
                         <MetricCard
                             title="Open Griefs"
                             value={isLoading ? '...' : formatNumber(activeData?.pendingComplaints || 0)}
                             sub="Active backlog"
                             icon={<Clock className="w-4 h-4 text-orange-500" />}
-                            isLive={true}
-                            description="Current count of unresolved complaints. Updated: Live."
+                            isLive={isLive}
+                            description="Current count of unresolved complaints."
                         />
                     </div>
                 </div>
@@ -212,8 +228,8 @@ export default function AnalyticsPage() {
                             value={isLoading ? '...' : `${((activeData?.searchBookFunnel?.sessionConversionRate || 0) * 100).toFixed(1)}%`}
                             sub="Path conversion"
                             icon={<Target className="w-4 h-4 text-violet-500" />}
-                            isLive={true}
-                            description="% of all visitor sessions that end in a booking. Updated: Live."
+                            isLive={isLive}
+                            description="% of all visitor sessions that end in a booking."
                         />
                         <MetricCard
                             title="Avg Session"
@@ -272,7 +288,7 @@ function MetricCard({
                 <div className="flex items-start justify-between">
                     <div className="flex flex-col gap-1">
                         <div className="flex items-center gap-2">
-                            <span className="text-[10px] font-black uppercase tracking-widest text-slate-400 group-hover:text-violet-600 transition-colors uppercase">{title}</span>
+                            <span className="text-[10px] font-black uppercase tracking-widest text-slate-400 group-hover:text-violet-600 transition-colors">{title}</span>
                             {isLive && (
                                 <span className="relative flex h-2 w-2">
                                     <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>

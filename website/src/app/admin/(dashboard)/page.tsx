@@ -1,9 +1,10 @@
 "use client"
 
+import { useState } from "react"
 import { useRouter } from "next/navigation"
 import {
     Users, ShoppingBag, Star,
-    Heart, Target, Activity, TrendingUp, ShieldCheck, Info
+    Heart, Target, Activity, TrendingUp, ShieldCheck, Info, Calendar
 } from "lucide-react"
 import {
     Tooltip as UITooltip,
@@ -20,6 +21,7 @@ import {
 import { PageContainer } from "@/components/admin/ui/page-container"
 import { SectionHeader } from "@/components/admin/ui/section-header"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/admin/ui/card"
+import { Tabs, TabsList, TabsTrigger } from "@/components/admin/ui/tabs"
 import {
     useDashboardSnapshots,
     useIntentAnalytics,
@@ -311,34 +313,52 @@ function ConversionTrendChart({ isLoading, breakdown }: {
 
 export default function DashboardPage() {
     const router = useRouter()
+    const [timeRange, setTimeRange] = useState<'daily' | 'weekly' | 'monthly'>('daily')
 
     const { data: liveProvidersCount, isLoading: isLoadingProviders } = useLiveProvidersCount()
     const { data: liveData, isLoading: isLoadingLive } = useLiveAnalytics()
+    const { activeSnapshot, isLoading: isLoadingSnapshot } = useDashboardSnapshots(true, timeRange)
     const { data: intentRes, isLoading: isLoadingIntent } = useIntentAnalytics()
 
     const conversionRate = intentRes?.data?.data?.summary?.overallConversionRate ?? 0
     const dailyBreakdown = intentRes?.data?.data?.dailyBreakdown
 
+    const isLive = timeRange === 'daily'
+    const isLoadingMetrics = isLive ? isLoadingLive : isLoadingSnapshot
+    const activeUsers = isLive ? liveData?.dau : (timeRange === 'weekly' ? (activeSnapshot?.wau ?? 0) : (activeSnapshot?.mau ?? 0))
+    const activeSearches = isLive ? liveData?.searches : (activeSnapshot?.searches ?? 0)
+    const activeBookings = isLive ? liveData?.bookings : (activeSnapshot?.bookings ?? 0)
+    const activeRetention = isLive ? liveData?.userRetentionRate : (activeSnapshot?.userRetentionRate ?? 0)
+
     return (
         <PageContainer>
             <TooltipProvider delayDuration={100}>
-                <SectionHeader title="System Overview" />
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
+                    <SectionHeader title="System Overview" />
+                    <Tabs value={timeRange} onValueChange={(v) => setTimeRange(v as 'daily' | 'weekly' | 'monthly')} className="w-full sm:w-auto">
+                        <TabsList className="bg-white dark:bg-neutral-900 border border-slate-200 dark:border-neutral-800 p-1">
+                            <TabsTrigger value="daily" className="text-xs px-4 py-1.5 data-[state=active]:bg-violet-50 data-[state=active]:text-violet-700 dark:data-[state=active]:bg-violet-500/20 dark:data-[state=active]:text-violet-300">Daily</TabsTrigger>
+                            <TabsTrigger value="weekly" className="text-xs px-4 py-1.5 data-[state=active]:bg-violet-50 data-[state=active]:text-violet-700 dark:data-[state=active]:bg-violet-500/20 dark:data-[state=active]:text-violet-300">Weekly</TabsTrigger>
+                            <TabsTrigger value="monthly" className="text-xs px-4 py-1.5 data-[state=active]:bg-violet-50 data-[state=active]:text-violet-700 dark:data-[state=active]:bg-violet-500/20 dark:data-[state=active]:text-violet-300">Monthly</TabsTrigger>
+                        </TabsList>
+                    </Tabs>
+                </div>
 
                 {/* ── Section 1: Key Platform Metrics ── */}
                 <div className="mb-10">
                     <MetricGroupLabel
                         label="Key Platform Metrics"
-                        sub="Core performance indicators"
-                        badge={<LiveBadge />}
+                        sub={isLive ? "Core performance indicators (Live)" : `Core performance indicators (${timeRange})`}
+                        badge={isLive ? <LiveBadge /> : <div className="flex items-center gap-1.5 text-[10px] font-bold text-violet-500 uppercase tracking-widest bg-violet-50 dark:bg-violet-900/30 px-2 py-0.5 rounded-full border border-violet-200 dark:border-violet-800"><Calendar className="w-3 h-3" /> Historical</div>}
                     />
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
                         <MetricCard
-                            title="DAU"
-                            value={isLoadingLive ? "..." : formatNumber(liveData?.dau ?? 0)}
-                            sub="Daily Active Users"
+                            title={isLive ? "DAU" : timeRange === 'weekly' ? "WAU" : "MAU"}
+                            value={isLoadingMetrics ? "..." : formatNumber(activeUsers ?? 0)}
+                            sub="Active Users"
                             icon={<Users className="w-4 h-4 text-blue-500" />}
-                            isLive={true}
-                            description="Logged-in users active today."
+                            isLive={isLive}
+                            description={isLive ? "Logged-in users active today." : `Active users for this ${timeRange} period.`}
                         />
                         <MetricCard
                             title="Live Providers"
@@ -350,37 +370,37 @@ export default function DashboardPage() {
                         />
                         <MetricCard
                             title="Conversion Rate"
-                            value={isLoadingIntent ? "..." : `${(conversionRate * 100).toFixed(1)}%`}
+                            value={isLoadingIntent ? "..." : `${((isLive ? conversionRate : (activeSnapshot?.conversionRate ?? 0)) * 100).toFixed(1)}%`}
                             sub="Search → Booking"
                             icon={<Target className="w-4 h-4 text-violet-500" />}
-                            isLive={true}
+                            isLive={isLive}
                             description="Sessions with search that resulted in a booking."
                         />
                         <MetricCard
                             title="Repeat Users"
-                            value={isLoadingLive ? "..." : `${((liveData?.userRetentionRate ?? 0) * 100).toFixed(1)}%`}
+                            value={isLoadingMetrics ? "..." : `${((activeRetention ?? 0) * 100).toFixed(1)}%`}
                             sub="Returning User Rate"
                             icon={<Heart className="w-4 h-4 text-rose-500" />}
-                            isLive={true}
-                            description="Returning users as a % of total daily actives."
+                            isLive={isLive}
+                            description="Returning users as a % of total actives."
                         />
                     </div>
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 pt-6">
                         <MetricCard
-                            title="Live Searches"
-                            value={isLoadingLive ? "..." : formatNumber(liveData?.searches ?? 0)}
-                            sub="Initiated Today"
+                            title="Searches"
+                            value={isLoadingMetrics ? "..." : formatNumber(activeSearches ?? 0)}
+                            sub={`Initiated ${timeRange}`}
                             icon={<Target className="w-4 h-4 text-orange-500" />}
-                            isLive={true}
-                            description="Total user searches initiated today. Updated live."
+                            isLive={isLive}
+                            description={`Total user searches initiated in this ${timeRange} period.`}
                         />
                         <MetricCard
-                            title="Live Bookings"
-                            value={isLoadingLive ? "..." : formatNumber(liveData?.bookings ?? 0)}
-                            sub="Initiated Today"
+                            title="Bookings"
+                            value={isLoadingMetrics ? "..." : formatNumber(activeBookings ?? 0)}
+                            sub={`Initiated ${timeRange}`}
                             icon={<ShoppingBag className="w-4 h-4 text-emerald-500" />}
-                            isLive={true}
-                            description="Bookings initiated today. Updated live."
+                            isLive={isLive}
+                            description={`Bookings initiated in this ${timeRange} period.`}
                         />
                     </div>
                 </div>

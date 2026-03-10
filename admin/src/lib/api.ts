@@ -6,10 +6,8 @@ const BASE_URL = process.env.NEXT_PUBLIC_API_URL;
 import { queryClient } from "./query-client";
 import { getUTCDayStr } from "./date-utils";
 import {
-    DashboardSummary,
     SnapshotData,
     AllTimeAnalytics,
-    IntentAnalytics,
     TrustTrendGraphic,
     DailyTrendSummary
 } from "@/types/analytics";
@@ -52,10 +50,8 @@ export async function api(path: string, options: FetchOptions = {}): Promise<Res
         const res = await fetch(url, config);
 
         // Auto-redirect to login on 401
-        if (res.status === 401 && !path.includes("/login")) {
-            if (typeof window !== "undefined") {
-                // Return response instead of throwing to avoid 'Failed to fetch' mimicking
-            }
+        if (res.status === 401 && !path.includes("/login") && typeof window !== "undefined") {
+            window.location.href = "/login";
         }
 
         return res;

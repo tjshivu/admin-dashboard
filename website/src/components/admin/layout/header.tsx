@@ -52,9 +52,11 @@ export function Header() {
     const handleLogout = async () => {
         try {
             await post("/admin/logout", {})
-            router.push("/admin/login")
         } catch (e) {
             console.error("Logout failed", e)
+        } finally {
+            // Hard navigation forces middleware to re-evaluate admin_token cookie
+            window.location.href = "/admin/login"
         }
     }
 

@@ -23,89 +23,152 @@ import { SectionHeader } from "@/components/ui/section-header"
 import { Card, CardContent, CardHeader } from "@/components/ui/card"
 import { SectionState } from "@/components/ui/section-state"
 import { useAnalyticsData, useIntentAnalytics, useDailyTrendSummary } from "@/hooks/use-analytics-hooks"
-import { SearchBookFunnel, DailyTrendSummary } from "@/types/analytics"
+import { SearchBookFunnel, DailyTrendSummary, SnapshotData, AllTimeAnalytics } from "@/types/analytics"
 import { formatNumber } from "@/lib/utils"
 
 // Charts config
 const CHART_TOOLTIP_STYLE = { borderRadius: '8px', border: 'none', backgroundColor: '#0f172a', color: '#fff', fontSize: '11px', fontWeight: 600 } as const
 const CHART_MARGIN = { top: 0, right: 60, left: 10, bottom: 0 } as const
 
+type Tab = 'daily' | 'weekly' | 'monthly' | 'all-time'
+
+const TABS: { id: Tab; label: string }[] = [
+    { id: 'daily', label: 'Daily' },
+    { id: 'weekly', label: 'Weekly' },
+    { id: 'monthly', label: 'Monthly' },
+    { id: 'all-time', label: 'All Time' },
+]
+
 export default function AnalyticsPage() {
-    const today = new Date().toISOString().split('T')[0]
-    const { allTime, daily } = useAnalyticsData(today, "current", "current")
+    const [activeTab, setActiveTab] = useState<Tab>('daily')
+
+    const { allTime, daily, weekly, monthly } = useAnalyticsData(activeTab)
     const { data: intentRes, isLoading: isLoadingIntent } = useIntentAnalytics()
 
-    // Defaulting to daily for active data context
-    const activeData = daily.data
-    const isLoading = daily.isLoading
-    const summary = allTime.data
+    // Resolve active snapshot data and loading state based on tab
+    const activeSnapshot: SnapshotData | null | undefined =
+        activeTab === 'daily' ? daily.data :
+        activeTab === 'weekly' ? weekly.data :
+        activeTab === 'monthly' ? monthly.data :
+        undefined
+
+    const isSnapshotLoading =
+        activeTab === 'daily' ? daily.isLoading :
+        activeTab === 'weekly' ? weekly.isLoading :
+        activeTab === 'monthly' ? monthly.isLoading :
+        false
+
+    const summary: AllTimeAnalytics | undefined = allTime.data
 
     const conversionRate = intentRes?.data?.data?.summary?.overallConversionRate || 0
 
-    // Trust trend state
+    const today = new Date().toISOString().split('T')[0]
     const [selectedDay, setSelectedDay] = useState<string>(today)
     const { data: trendRes, isLoading: isTrendLoading, error: trendError, refetch: refetchTrend } = useDailyTrendSummary(selectedDay)
+
+    // Sub-label shown under the section header, varies by tab
+    const tabPeriodLabel =
+        activeTab === 'daily' ? "Today's snapshot" :
+        activeTab === 'weekly' ? "This week's snapshot" :
+        activeTab === 'monthly' ? "This month's snapshot" :
+        "Lifetime aggregate"
 
     return (
         <PageContainer>
             <TooltipProvider delayDuration={100}>
                 <SectionHeader title="System Analytics" />
 
+                {/* ── Tab Switcher ── */}
+                <div className="flex gap-1 mb-8 bg-slate-100 dark:bg-neutral-800 p-1 rounded-xl w-fit">
+                    {TABS.map(tab => (
+                        <button
+                            key={tab.id}
+                            onClick={() => setActiveTab(tab.id)}
+                            className={`px-4 py-1.5 rounded-lg text-xs font-bold uppercase tracking-widest transition-all ${
+                                activeTab === tab.id
+                                    ? 'bg-white dark:bg-neutral-900 text-slate-900 dark:text-white shadow-sm'
+                                    : 'text-slate-500 hover:text-slate-700 dark:hover:text-slate-300'
+                            }`}
+                        >
+                            {tab.label}
+                        </button>
+                    ))}
+                </div>
+
                 {/* SECTION 1 — PLATFORM ACTIVITY */}
                 <div className="mb-10">
-                    <SectionLabel label="Platform Activity" sub="User engagement & presence" />
+                    <SectionLabel label="Platform Activity" sub={`User engagement & presence — ${tabPeriodLabel}`} />
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                        {/* DAU / WAU / MAU — field name differs per layer */}
                         <MetricCard
-                            title="DAU"
-                            value={isLoading ? "..." : formatNumber(activeData?.dau || 0)}
-                            sub="Daily Active Users"
+                            title={activeTab === 'daily' ? "DAU" : activeTab === 'weekly' ? "WAU" : activeTab === 'monthly' ? "MAU" : "Total Users"}
+                            value={
+                                activeTab === 'all-time'
+                                    ? (allTime.isLoading ? "..." : formatNumber(summary?.totalUsers || 0))
+                                    : (isSnapshotLoading ? "..." : formatNumber(
+                                        (activeTab === 'daily' ? activeSnapshot?.dau :
+                                         activeTab === 'weekly' ? activeSnapshot?.wau :
+                                         activeSnapshot?.mau) || 0
+                                    ))
+                            }
+                            sub={activeTab === 'all-time' ? "Registered Accounts" : "Active Users"}
                             icon={<Users className="w-4 h-4 text-blue-500" />}
-                            isLive={true}
-                            description="Unique users active today. Updated: every 30 mins."
+                            isLive={activeTab === 'daily'}
+                            description="Active users in the selected period."
                         />
-                        <MetricCard
-                            title="Total Users"
-                            value={allTime.isLoading ? "..." : formatNumber(summary?.totalUsers || 0)}
-                            sub="Registered Accounts"
-                            icon={<Users className="w-4 h-4 text-indigo-500" />}
-                            description="Total registered user accounts. Updated: Midnight."
-                        />
+                        {activeTab !== 'all-time' && (
+                            <MetricCard
+                                title="Total Users"
+                                value={allTime.isLoading ? "..." : formatNumber(summary?.totalUsers || 0)}
+                                sub="Registered Accounts"
+                                icon={<Users className="w-4 h-4 text-indigo-500" />}
+                                description="Total registered user accounts."
+                            />
+                        )}
                         <MetricCard
                             title="Retention Rate"
-                            value={isLoading ? "..." : `${((activeData?.userRetentionRate || 0) * 100).toFixed(1)}%`}
+                            value={isSnapshotLoading ? "..." : `${((activeSnapshot?.userRetentionRate || 0) * 100).toFixed(1)}%`}
                             sub="Day-over-Day Stickiness"
                             icon={<Heart className="w-4 h-4 text-rose-500" />}
-                            isLive={true}
-                            description="% of yesterday's users who returned today. Updated: Live."
+                            isLive={activeTab === 'daily'}
+                            description="% of prior period users who returned."
                         />
                     </div>
                 </div>
 
                 {/* SECTION 2 — DEMAND & BOOKINGS */}
                 <div className="mb-10">
-                    <SectionLabel label="Demand & Bookings" sub="Marketplace throughput" />
+                    <SectionLabel label="Demand & Bookings" sub={`Marketplace throughput — ${tabPeriodLabel}`} />
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                         <MetricCard
                             title="Total Bookings"
-                            value={allTime.isLoading ? "..." : formatNumber(summary?.totalBookings || 0)}
-                            sub="Lifetime volume"
+                            value={
+                                activeTab === 'all-time'
+                                    ? (allTime.isLoading ? "..." : formatNumber(summary?.totalBookings || 0))
+                                    : (isSnapshotLoading ? "..." : formatNumber(activeSnapshot?.bookings || 0))
+                            }
+                            sub={activeTab === 'all-time' ? "Lifetime volume" : "Period volume"}
                             icon={<ShoppingBag className="w-4 h-4 text-emerald-500" />}
-                            description="Total lifetime bookings initiated. Updated: Midnight."
+                            description="Total bookings initiated in the selected period."
                         />
                         <MetricCard
-                            title="Total Successful"
-                            value={allTime.isLoading ? "..." : formatNumber(summary?.totalCompletedBookings || 0)}
+                            title="Completed Bookings"
+                            value={
+                                activeTab === 'all-time'
+                                    ? (allTime.isLoading ? "..." : formatNumber(summary?.totalCompletedBookings || 0))
+                                    : (isSnapshotLoading ? "..." : formatNumber(activeSnapshot?.bookings_completed || 0))
+                            }
                             sub="Success volume"
                             icon={<ShieldCheck className="w-4 h-4 text-blue-500" />}
-                            description="Lifetime total of completed services. Updated: Midnight."
+                            description="Completed services in the selected period."
                         />
                         <MetricCard
-                            title="Live Searches"
-                            value={isLoading ? "..." : formatNumber(activeData?.searches || 0)}
-                            sub="Initiated Today"
+                            title="Searches"
+                            value={isSnapshotLoading ? "..." : formatNumber(activeSnapshot?.searches || 0)}
+                            sub="Initiated"
                             icon={<Target className="w-4 h-4 text-orange-500" />}
-                            isLive={true}
-                            description="Total user searches initiated today. Updated: Live."
+                            isLive={activeTab === 'daily'}
+                            description="Total user searches in the selected period."
                         />
                         <MetricCard
                             title="Booking Conversion"
@@ -113,136 +176,145 @@ export default function AnalyticsPage() {
                             sub="Search → Booking"
                             icon={<Target className="w-4 h-4 text-violet-500" />}
                             isLive={true}
-                            description="% of searches that result in a booking. Updated: Live."
+                            description="% of sessions with search that resulted in a booking."
                         />
                         <MetricCard
-                            title="Live Bookings"
-                            value={isLoading ? "..." : formatNumber(activeData?.bookings || 0)}
-                            sub="Initiated Today"
+                            title="Reviews"
+                            value={isSnapshotLoading ? "..." : formatNumber(activeSnapshot?.reviews_submitted || 0)}
+                            sub="Submitted"
                             icon={<Activity className="w-4 h-4 text-emerald-500" />}
-                            isLive={true}
-                            description="Total bookings initiated today. Updated: Live."
+                            isLive={activeTab === 'daily'}
+                            description="Reviews submitted in the selected period."
                         />
                     </div>
                 </div>
 
                 {/* SECTION 3 — SUPPLY HEALTH */}
                 <div className="mb-10">
-                    <SectionLabel label="Supply Health" sub="Provider ecosystem metrics" />
+                    <SectionLabel label="Supply Health" sub={`Provider ecosystem metrics — ${tabPeriodLabel}`} />
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                         <MetricCard
                             title="Total Providers"
                             value={allTime.isLoading ? "..." : formatNumber(summary?.totalProviders || 0)}
                             sub="Supply volume"
                             icon={<Activity className="w-4 h-4 text-indigo-500" />}
-                            description="Total registered service providers. Updated: Midnight."
+                            description="Total registered service providers."
                         />
                         <MetricCard
                             title="Avg Trust Score"
-                            value={isLoading ? '...' : (activeData?.avgProviderTrustScore || 0).toFixed(2)}
+                            value={isSnapshotLoading ? '...' : (activeSnapshot?.avgProviderTrustScore || 0).toFixed(2)}
                             sub="System quality avg"
                             icon={<ShieldCheck className="w-4 h-4 text-emerald-500" />}
-                            isLive={true}
-                            description="Mean trust score across all providers (0-100). Updated: Live."
+                            isLive={activeTab === 'daily'}
+                            description="Mean trust score across all providers (0-100)."
                         />
                         <div className="grid grid-cols-2 gap-4">
                             <MetricCard
                                 title="In Decay"
-                                value={isLoading ? '...' : formatNumber(activeData?.providersInDecay || 0)}
+                                value={isSnapshotLoading ? '...' : formatNumber(activeSnapshot?.providersInDecay || 0)}
                                 sub="Trust declining"
                                 icon={<Activity className="w-4 h-4 text-rose-500" />}
-                                isLive={true}
-                                description="Providers whose scores dropped recently. Updated: Live."
+                                isLive={activeTab === 'daily'}
+                                description="Providers whose scores dropped recently."
                             />
                             <MetricCard
                                 title="In Recovery"
-                                value={isLoading ? '...' : formatNumber(activeData?.providersInRecovery || 0)}
+                                value={isSnapshotLoading ? '...' : formatNumber(activeSnapshot?.providersInRecovery || 0)}
                                 sub="Rebuilding"
                                 icon={<Activity className="w-4 h-4 text-blue-500" />}
-                                isLive={true}
-                                description="Providers whose scores are improving. Updated: Live."
+                                isLive={activeTab === 'daily'}
+                                description="Providers whose scores are improving."
                             />
                         </div>
                         <MetricCard
                             title="Review Density"
-                            value={isLoading ? '...' : `${((activeData?.booking_to_review_ratio || 0) * 100).toFixed(1)}%`}
+                            value={isSnapshotLoading ? '...' : `${((activeSnapshot?.booking_to_review_ratio || 0) * 100).toFixed(1)}%`}
                             sub="Feedback frequency"
                             icon={<Star className="w-4 h-4 text-amber-500" />}
-                            description="% of bookings that receive a review. Updated: Live."
+                            description="% of bookings that receive a review."
                         />
                     </div>
                 </div>
 
                 {/* SECTION 4 — TRUST & MODERATION */}
                 <div className="mb-10">
-                    <SectionLabel label="Trust & Moderation" sub="Platform integrity & resolution" />
+                    <SectionLabel label="Trust & Moderation" sub={`Platform integrity & resolution — ${tabPeriodLabel}`} />
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                         <MetricCard
                             title="Complaints"
-                            value={allTime.isLoading ? "..." : formatNumber(summary?.totalComplaints || 0)}
-                            sub="Lifetime volume"
+                            value={
+                                activeTab === 'all-time'
+                                    ? (allTime.isLoading ? "..." : formatNumber(summary?.totalComplaints || 0))
+                                    : (isSnapshotLoading ? "..." : formatNumber(activeSnapshot?.complaints || 0))
+                            }
+                            sub={activeTab === 'all-time' ? "Lifetime volume" : "Period volume"}
                             icon={<MessageSquare className="w-4 h-4 text-slate-500" />}
-                            description="Total lifetime sum of all grievances. Updated: Midnight."
+                            description="Total complaints in the selected period."
                         />
                         <MetricCard
                             title="Resolution Rate"
-                            value={isLoading ? '...' : `${((activeData?.complaintResolutionRate || 0) * 100).toFixed(1)}%`}
+                            value={isSnapshotLoading ? '...' : `${((activeSnapshot?.complaintResolutionRate || 0) * 100).toFixed(1)}%`}
                             sub="Closing efficiency"
                             icon={<ShieldCheck className="w-4 h-4 text-emerald-500" />}
-                            isLive={true}
-                            description="% of total complaints marked as resolved. Updated: Live."
+                            isLive={activeTab === 'daily'}
+                            description="% of complaints marked as resolved."
                         />
                         <MetricCard
                             title="Open Griefs"
-                            value={isLoading ? '...' : formatNumber(activeData?.pendingComplaints || 0)}
+                            value={isSnapshotLoading ? '...' : formatNumber(activeSnapshot?.pendingComplaints || 0)}
                             sub="Active backlog"
                             icon={<Clock className="w-4 h-4 text-orange-500" />}
-                            isLive={true}
-                            description="Current count of unresolved complaints. Updated: Live."
+                            isLive={activeTab === 'daily'}
+                            description="Current count of unresolved complaints."
                         />
                     </div>
                 </div>
 
-                {/* SECTION 5 — USER JOURNEY */}
-                <div className="mb-10">
-                    <SectionLabel label="User Journey" sub="Session-level telemetry" />
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                        <MetricCard
-                            title="Funnel Efficiency"
-                            value={isLoading ? '...' : `${((activeData?.searchBookFunnel?.sessionConversionRate || 0) * 100).toFixed(1)}%`}
-                            sub="Path conversion"
-                            icon={<Target className="w-4 h-4 text-violet-500" />}
-                            isLive={true}
-                            description="% of all visitor sessions that end in a booking. Updated: Live."
-                        />
-                        <MetricCard
-                            title="Avg Session"
-                            value={isLoading ? '...' : `${((activeData?.userIntents?.avgSessionDuration || 0) / 1000).toFixed(1)}s`}
-                            sub="Time on platform"
-                            icon={<Clock className="w-4 h-4 text-slate-500" />}
-                            description="Average duration of user sessions. Updated: Midnight."
-                        />
-                    </div>
-                </div>
-
-                <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
-                    <SessionFunnelSection funnel={activeData?.searchBookFunnel} />
-
-                    <div className="flex flex-col">
-                        <div className="flex items-center gap-3 mb-4 flex-wrap">
-                            <h3 className="text-xs font-bold text-slate-500 uppercase tracking-widest">Platform Trust Trend</h3>
-                            <div className="h-px flex-1 bg-slate-100 dark:bg-neutral-800" />
-                            <input
-                                type="date"
-                                value={selectedDay}
-                                onChange={e => setSelectedDay(e.target.value)}
-                                max={today}
-                                className="text-xs font-medium border border-slate-200 dark:border-neutral-700 rounded-lg px-3 py-1.5 bg-white dark:bg-neutral-900 text-slate-700 dark:text-neutral-200 focus:outline-none focus:ring-2 focus:ring-violet-500"
+                {/* SECTION 5 — USER JOURNEY (snapshot tabs only) */}
+                {activeTab !== 'all-time' && (
+                    <div className="mb-10">
+                        <SectionLabel label="User Journey" sub="Session-level telemetry" />
+                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                            <MetricCard
+                                title="Funnel Efficiency"
+                                value={isSnapshotLoading ? '...' : `${((activeSnapshot?.searchBookFunnel?.sessionConversionRate || 0) * 100).toFixed(1)}%`}
+                                sub="Path conversion"
+                                icon={<Target className="w-4 h-4 text-violet-500" />}
+                                isLive={activeTab === 'daily'}
+                                description="% of all visitor sessions that end in a booking."
+                            />
+                            <MetricCard
+                                title="Avg Session"
+                                value={isSnapshotLoading ? '...' : `${((activeSnapshot?.userIntents?.avgSessionDuration || 0) / 1000).toFixed(1)}s`}
+                                sub="Time on platform"
+                                icon={<Clock className="w-4 h-4 text-slate-500" />}
+                                description="Average duration of user sessions."
                             />
                         </div>
-                        <TrustTrendSection trend={trendRes} error={trendError} onRetry={refetchTrend} />
                     </div>
-                </div>
+                )}
+
+                {/* SECTION 6 — Charts (snapshot tabs only) */}
+                {activeTab !== 'all-time' && (
+                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
+                        <SessionFunnelSection funnel={activeSnapshot?.searchBookFunnel} />
+
+                        <div className="flex flex-col">
+                            <div className="flex items-center gap-3 mb-4 flex-wrap">
+                                <h3 className="text-xs font-bold text-slate-500 uppercase tracking-widest">Platform Trust Trend</h3>
+                                <div className="h-px flex-1 bg-slate-100 dark:bg-neutral-800" />
+                                <input
+                                    type="date"
+                                    value={selectedDay}
+                                    onChange={e => setSelectedDay(e.target.value)}
+                                    max={today}
+                                    className="text-xs font-medium border border-slate-200 dark:border-neutral-700 rounded-lg px-3 py-1.5 bg-white dark:bg-neutral-900 text-slate-700 dark:text-neutral-200 focus:outline-none focus:ring-2 focus:ring-violet-500"
+                                />
+                            </div>
+                            <TrustTrendSection trend={trendRes} error={trendError} onRetry={refetchTrend} />
+                        </div>
+                    </div>
+                )}
 
             </TooltipProvider>
         </PageContainer>
@@ -272,7 +344,7 @@ function MetricCard({
                 <div className="flex items-start justify-between">
                     <div className="flex flex-col gap-1">
                         <div className="flex items-center gap-2">
-                            <span className="text-[10px] font-black uppercase tracking-widest text-slate-400 group-hover:text-violet-600 transition-colors uppercase">{title}</span>
+                            <span className="text-[10px] font-black uppercase tracking-widest text-slate-400 group-hover:text-violet-600 transition-colors">{title}</span>
                             {isLive && (
                                 <span className="relative flex h-2 w-2">
                                     <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>

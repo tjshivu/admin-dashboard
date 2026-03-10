@@ -10,6 +10,7 @@ import {
     get
 } from "@/lib/admin/api"
 import {
+    getUTCDayStr,
     getUTCWeekStr,
     getUTCMonthStr
 } from "@/lib/admin/date-utils"
@@ -25,15 +26,7 @@ import {
 } from "@/types/admin/analytics"
 import { useMemo } from "react"
 
-export function useDashboardSummary() {
-    return useQuery<AllTimeAnalytics>({
-        queryKey: ["dashboard-summary"],
-        queryFn: fetchAllTimeAnalytics,
-        staleTime: 15 * 60 * 1000, // all-time
-        retry: false,
-        refetchOnWindowFocus: false
-    })
-}
+
 
 export function useDashboardSnapshots(
     isChartExpanded: boolean,
@@ -121,14 +114,16 @@ export function useOperationalInsights() {
 }
 
 export function useAnalyticsData(
-    selectedDay: string,
-    selectedWeek: string,
-    selectedMonth: string
+    tab: 'daily' | 'weekly' | 'monthly'
 ) {
+    const selectedDay = getUTCDayStr()
+    const selectedWeek = getUTCWeekStr()
+    const selectedMonth = getUTCMonthStr()
+
     const allTime = useQuery<AllTimeAnalytics>({
         queryKey: ['all-time'],
         queryFn: fetchAllTimeAnalytics,
-        staleTime: 15 * 60 * 1000, // all-time
+        staleTime: 15 * 60 * 1000,
         retry: false,
         refetchOnWindowFocus: false
     })
@@ -136,7 +131,8 @@ export function useAnalyticsData(
     const daily = useQuery<SnapshotData>({
         queryKey: ['daily-snapshot', selectedDay],
         queryFn: () => fetchDailyAnalytics(selectedDay),
-        staleTime: 10 * 60 * 1000, // snapshot
+        enabled: tab === 'daily',
+        staleTime: 10 * 60 * 1000,
         retry: false,
         refetchOnWindowFocus: false
     })
@@ -144,7 +140,8 @@ export function useAnalyticsData(
     const weekly = useQuery<SnapshotData | null>({
         queryKey: ['weekly-snapshot', selectedWeek],
         queryFn: () => fetchWeeklyAnalytics(selectedWeek),
-        staleTime: 10 * 60 * 1000, // snapshot
+        enabled: tab === 'weekly',
+        staleTime: 10 * 60 * 1000,
         retry: false,
         refetchOnWindowFocus: false
     })
@@ -152,7 +149,8 @@ export function useAnalyticsData(
     const monthly = useQuery<SnapshotData | null>({
         queryKey: ['monthly-snapshot', selectedMonth],
         queryFn: () => fetchMonthlyAnalytics(selectedMonth),
-        staleTime: 10 * 60 * 1000, // snapshot
+        enabled: tab === 'monthly',
+        staleTime: 10 * 60 * 1000,
         retry: false,
         refetchOnWindowFocus: false
     })
