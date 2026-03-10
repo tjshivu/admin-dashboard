@@ -3,7 +3,6 @@
 import { useEffect, useState } from 'react';
 import { motion } from 'framer-motion';
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL || 'https://api.brikuptech.com';
 const CACHE_KEY = 'brikup_feed_cache';
 const CACHE_TS_KEY = 'brikup_feed_ts';
 const CACHE_TTL_MS = 12 * 60 * 60 * 1000; // 12 hours
@@ -94,7 +93,7 @@ export default function TopRatedProfessionals() {
                 }
 
                 // Fetch from API
-                const res = await fetch(`${API_URL}/api/feed/web`, {
+                const res = await fetch('/api/feed/web', {
                     method: 'GET',
                     headers: { 'Content-Type': 'application/json' },
                     cache: 'no-store',
