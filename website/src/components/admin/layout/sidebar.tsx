@@ -22,14 +22,14 @@ import { useSharedNotifications } from "@/components/admin/providers/notificatio
 import { useAdminProfile } from "@/hooks/admin/use-admin-profile"
 
 const sidebarItems = [
-    { href: "/", label: "Overview", icon: LayoutDashboard },
-    { href: "/admins", label: "Admins", icon: Users },
-    { href: "/providers", label: "Providers", icon: Building2 },
-    { href: "/complaints", label: "Complaints", icon: AlertCircle },
-    { href: "/reviews", label: "Reviews", icon: Star },
-    { href: "/health", label: "System Health", icon: Stethoscope },
-    { href: "/categories", label: "Categories", icon: Tags },
-    { href: "/analytics", label: "Analytics", icon: BarChart3 },
+    { href: "/admin", label: "Overview", icon: LayoutDashboard },
+    { href: "/admin/admins", label: "Admins", icon: Users },
+    { href: "/admin/providers", label: "Providers", icon: Building2 },
+    { href: "/admin/complaints", label: "Complaints", icon: AlertCircle },
+    { href: "/admin/reviews", label: "Reviews", icon: Star },
+    { href: "/admin/health", label: "System Health", icon: Stethoscope },
+    { href: "/admin/categories", label: "Categories", icon: Tags },
+    { href: "/admin/analytics", label: "Analytics", icon: BarChart3 },
 ]
 
 import { ALLOWED_ROUTES_FOR_NON_SUPER } from "@/lib/admin/constants"
@@ -89,11 +89,11 @@ export function Sidebar() {
                         <nav className="flex flex-col gap-1">
                             {sidebarItems.map((item) => {
                                 const Icon = item.icon
-                                const isExactActive = item.href === "/" ? pathname === "/" : pathname.startsWith(item.href)
+                                const isExactActive = item.href === "/admin" ? pathname === "/admin" : pathname.startsWith(item.href)
 
                                 // RBAC check
                                 const isAllowed = isSuperAdmin || ALLOWED_ROUTES_FOR_NON_SUPER.some(route => {
-                                    if (route === "/") return item.href === "/"
+                                    if (route === "/admin") return item.href === "/admin"
                                     return item.href.startsWith(route)
                                 })
 
@@ -142,9 +142,9 @@ export function Sidebar() {
                     {/* Lower Menu */}
                     <div className="mt-auto flex flex-col gap-2">
                         <nav className="flex flex-col gap-1 pt-4 border-t border-slate-200">
-                            <Link href="/help" title={collapsed ? "Help and docs" : undefined} className={cn(
+                            <Link href="/admin/help" title={collapsed ? "Help and docs" : undefined} className={cn(
                                 "flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all group",
-                                pathname === '/help' ? "bg-violet-50 text-violet-700" : "text-slate-600 hover:bg-slate-50 hover:text-slate-900",
+                                pathname === '/admin/help' ? "bg-violet-50 text-violet-700" : "text-slate-600 hover:bg-slate-50 hover:text-slate-900",
                                 "hover:text-violet-600 dark:hover:text-violet-300"
                             )}>
                                 <HelpCircle className="h-5 w-5 shrink-0 text-slate-400 group-hover:text-violet-600" />
