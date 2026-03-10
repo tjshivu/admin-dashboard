@@ -12,6 +12,11 @@ const MostUsedServices = dynamic(() => import('@/components/MostUsedServices'), 
   ssr: false
 });
 
+const TopRatedProfessionals = dynamic(() => import('@/components/TopRatedProfessionals'), {
+  loading: () => <div className="min-h-[300px]" />,
+  ssr: false
+});
+
 const Footer = dynamic(() => import('@/components/Footer'), {
   ssr: false
 });
@@ -148,6 +153,11 @@ export default function Home() {
         </div>
       </section>
 
+
+      {/* Top Rated Professionals (live feed, 2h cache) */}
+      <div className="relative z-10">
+        <TopRatedProfessionals />
+      </div>
 
       {/* Lazy loaded Most Used Services */}
       <div className="relative z-10 bg-white">

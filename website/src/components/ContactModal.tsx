@@ -11,14 +11,31 @@ interface ContactModalProps {
 
 export default function ContactModal({ isOpen, onClose }: ContactModalProps) {
     const [sent, setSent] = useState(false);
+    const [loading, setLoading] = useState(false);
+    const [error, setError] = useState('');
+    const [name, setName] = useState('');
+    const [email, setEmail] = useState('');
+    const [message, setMessage] = useState('');
 
-    const handleSubmit = (e: React.FormEvent) => {
+    const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
-        setSent(true);
-        setTimeout(() => {
-            setSent(false);
-            onClose();
-        }, 2000);
+        setLoading(true);
+        setError('');
+        try {
+            const res = await fetch('/api/contact', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ name, email, message }),
+            });
+            if (!res.ok) throw new Error('Failed');
+            setSent(true);
+            setName(''); setEmail(''); setMessage('');
+            setTimeout(() => { setSent(false); onClose(); }, 2500);
+        } catch {
+            setError('Something went wrong. Please try again.');
+        } finally {
+            setLoading(false);
+        }
     };
 
     const handleClose = () => {
@@ -94,26 +111,36 @@ export default function ContactModal({ isOpen, onClose }: ContactModalProps) {
                                             type="text"
                                             placeholder="Your name"
                                             required
+                                            value={name}
+                                            onChange={e => setName(e.target.value)}
                                             className="bg-zinc-900 border border-zinc-800 rounded-xl px-4 py-3 text-sm text-white placeholder:text-zinc-600 outline-none focus:border-white/30 transition-colors w-full"
                                         />
                                         <input
                                             type="email"
                                             placeholder="Email address"
                                             required
+                                            value={email}
+                                            onChange={e => setEmail(e.target.value)}
                                             className="bg-zinc-900 border border-zinc-800 rounded-xl px-4 py-3 text-sm text-white placeholder:text-zinc-600 outline-none focus:border-white/30 transition-colors w-full"
                                         />
                                         <textarea
                                             placeholder="Your message"
                                             rows={3}
                                             required
+                                            value={message}
+                                            onChange={e => setMessage(e.target.value)}
                                             className="bg-zinc-900 border border-zinc-800 rounded-xl px-4 py-3 text-sm text-white placeholder:text-zinc-600 outline-none focus:border-white/30 transition-colors w-full resize-none"
                                         />
+                                        {error && (
+                                            <p className="text-red-400 text-xs text-center">{error}</p>
+                                        )}
                                         <button
                                             type="submit"
-                                            className="bg-white text-black rounded-xl px-5 py-3 text-sm font-semibold hover:bg-zinc-200 transition-colors flex items-center justify-center gap-2 w-full mt-1 active:scale-[0.98]"
+                                            disabled={loading}
+                                            className="bg-white text-black rounded-xl px-5 py-3 text-sm font-semibold hover:bg-zinc-200 transition-colors flex items-center justify-center gap-2 w-full mt-1 active:scale-[0.98] disabled:opacity-60 disabled:cursor-not-allowed"
                                         >
                                             <Send size={14} />
-                                            Send Message
+                                            {loading ? 'Sending...' : 'Send Message'}
                                         </button>
                                     </form>
                                 </motion.div>

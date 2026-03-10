@@ -26,9 +26,27 @@ const nextConfig: NextConfig = {
         protocol: 'https',
         hostname: 'api.qrserver.com',
       },
+      {
+        protocol: 'https',
+        hostname: 'ik.imagekit.io',
+      },
+      {
+        protocol: 'https',
+        hostname: 'h8DxKfmAPhn8O0p3.public.blob.vercel-storage.com',
+      },
     ],
     formats: ['image/avif', 'image/webp'],
     minimumCacheTTL: 60 * 60 * 24 * 30, // 30 days
+  },
+
+  // API proxy rewrite for admin dashboard
+  async rewrites() {
+    return [
+      {
+        source: '/api/:path*',
+        destination: `${process.env.NEXT_PUBLIC_API_URL || 'https://api.brikuptech.com/api'}/:path*`,
+      },
+    ];
   },
 
   // Security Headers
@@ -73,7 +91,7 @@ const nextConfig: NextConfig = {
               "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
               "font-src 'self' https://fonts.gstatic.com",
               "img-src 'self' data: blob: https://randomuser.me https://api.qrserver.com https://h8DxKfmAPhn8O0p3.public.blob.vercel-storage.com",
-              "connect-src 'self'",
+              "connect-src 'self' https://api.brikuptech.com",
               "frame-ancestors 'none'",
             ].join('; '),
           },
