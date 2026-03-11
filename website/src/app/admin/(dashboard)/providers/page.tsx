@@ -146,7 +146,7 @@ export default function ProvidersPage() {
         setActionLoading(true)
         try {
             const res = await post(`/admin/providers/${id}/approve`, {})
-            if (res && res.success) {
+            if (res?.success) {
                 showToast({ type: "success", message: "Provider approved successfully" })
                 logAdminAction("Provider Approved", `Provider ID ${id} was approved.`)
                 await fetchProviderDetail(id)
@@ -154,9 +154,9 @@ export default function ProvidersPage() {
             } else {
                 showToast({ type: "error", message: res?.message || "Failed to approve provider" })
             }
-        } catch (e) {
-            console.error(e)
-            showToast({ type: "error", message: "An error occurred" })
+        } catch (e: any) {
+            console.error("[handleApprove]", e)
+            showToast({ type: "error", message: e?.message || "An error occurred while approving" })
         } finally {
             setActionLoading(false)
         }
@@ -174,7 +174,7 @@ export default function ProvidersPage() {
         setActionLoading(true)
         try {
             const res = await post(`/admin/providers/${id}/reject`, { reject_reason: reason.trim() })
-            if (res && res.success) {
+            if (res?.success) {
                 showToast({ type: "success", message: "Provider rejected successfully" })
                 logAdminAction("Provider Rejected", `Provider ID ${id} was rejected. Reason: ${reason.trim()}`)
                 await fetchProviderDetail(id)
@@ -182,9 +182,9 @@ export default function ProvidersPage() {
             } else {
                 showToast({ type: "error", message: res?.message || "Failed to reject provider" })
             }
-        } catch (e) {
-            console.error(e)
-            showToast({ type: "error", message: "An error occurred" })
+        } catch (e: any) {
+            console.error("[handleReject]", e)
+            showToast({ type: "error", message: e?.message || "An error occurred while rejecting" })
         } finally {
             setActionLoading(false)
         }
@@ -234,7 +234,7 @@ export default function ProvidersPage() {
         setActionLoading(true)
         try {
             const res = await post(`/admin/providers/${id}/suspend`, {})
-            if (res && res.success) {
+            if (res?.success) {
                 showToast({ type: "success", message: "Provider suspended successfully" })
                 logAdminAction("Provider Suspended", `Provider ID ${id} was suspended.`)
                 await fetchProviderDetail(id)
@@ -242,9 +242,9 @@ export default function ProvidersPage() {
             } else {
                 showToast({ type: "error", message: res?.message || "Failed to suspend provider" })
             }
-        } catch (e) {
-            console.error(e)
-            showToast({ type: "error", message: "An error occurred" })
+        } catch (e: any) {
+            console.error("[handleSuspend]", e)
+            showToast({ type: "error", message: e?.message || "An error occurred while suspending" })
         } finally {
             setActionLoading(false)
         }
