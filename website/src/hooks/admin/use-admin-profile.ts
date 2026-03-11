@@ -13,7 +13,8 @@ export function useAdminProfile() {
             // eslint-disable-next-line @typescript-eslint/no-explicit-any
             return (res as any).admin || res.data || null
         },
-        staleTime: 5 * 60 * 1000 // 5 minutes
+        staleTime: 5 * 60 * 1000,    // 5 minutes
+        refetchOnWindowFocus: false   // this hook runs in Sidebar + PermissionGuard — don't hit /admin/me on every tab switch
     })
 
     const role = (profileData?.role as AdminRole) || null

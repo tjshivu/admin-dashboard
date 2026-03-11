@@ -4,7 +4,6 @@ import {
     fetchDailyAnalytics,
     fetchWeeklyAnalytics,
     fetchMonthlyAnalytics,
-    fetchLiveTodayAnalytics,
     fetchTrustTrendGraphic,
     fetchDailyTrendSummary,
     get
@@ -32,17 +31,17 @@ export function useDashboardSnapshots(
     isChartExpanded: boolean,
     chartTab: 'daily' | 'weekly' | 'monthly'
 ) {
-    const daily = useQuery<SnapshotData>({
-        queryKey: ["live-analytics-today"],
-        queryFn: fetchLiveTodayAnalytics,
-        refetchInterval: 5 * 60 * 1000,
-        retry: false
-    })
+    // NOTE: The daily ('live-analytics-today') query is intentionally NOT registered here.
+    // useLiveAnalytics() already owns that query key with a 10-min poll interval.
+    // Registering it again here caused a duplicate with a conflicting 5-min interval.
+    // The dashboard page uses useLiveAnalytics() directly for the daily tab.
 
     const weekly = useQuery<SnapshotData | null>({
         queryKey: ["weekly-snapshot-dash"],
         queryFn: () => fetchWeeklyAnalytics(getUTCWeekStr()),
         enabled: isChartExpanded && chartTab === 'weekly',
+        staleTime: 30 * 60 * 1000,   // weekly snapshots don't change mid-day
+        refetchOnWindowFocus: false,
         retry: false
     })
 
@@ -50,27 +49,33 @@ export function useDashboardSnapshots(
         queryKey: ["monthly-snapshot-dash"],
         queryFn: () => fetchMonthlyAnalytics(getUTCMonthStr()),
         enabled: isChartExpanded && chartTab === 'monthly',
+        staleTime: 30 * 60 * 1000,   // monthly snapshots don't change mid-day
+        refetchOnWindowFocus: false,
         retry: false
     })
 
-    const activeSnapshot = chartTab === 'daily' ? daily.data : chartTab === 'weekly' ? weekly.data : monthly.data
-    const isLoading = chartTab === 'daily' ? (daily.isLoading || daily.isFetching)
-        : chartTab === 'weekly' ? (weekly.isLoading || weekly.isFetching)
-            : (monthly.isLoading || monthly.isFetching)
+    const activeSnapshot = chartTab === 'weekly' ? weekly.data : monthly.data
+    const isLoading = chartTab === 'weekly'
+        ? (weekly.isLoading || weekly.isFetching)
+        : (monthly.isLoading || monthly.isFetching)
 
-    return { daily, weekly, monthly, activeSnapshot, isLoading }
+    return { weekly, monthly, activeSnapshot, isLoading }
 }
 
 export function useOperationalInsights() {
     const complaints = useQuery({
         queryKey: ["complaints-snapshot"],
         queryFn: () => get<ComplaintData[]>("/complaints/admin/list?limit=100"),
+        staleTime: 10 * 60 * 1000,   // don't re-fetch for 10 minutes
+        refetchOnWindowFocus: false,
         retry: false
     })
 
     const reviews = useQuery({
         queryKey: ["reviews-snapshot"],
         queryFn: () => get<ReviewData[]>("/admin/reviews/flagged?limit=100"),
+        staleTime: 10 * 60 * 1000,   // don't re-fetch for 10 minutes
+        refetchOnWindowFocus: false,
         retry: false
     })
 
@@ -162,6 +167,7 @@ export function useIntentAnalytics() {
     return useQuery({
         queryKey: ["session-intent-summary"],
         queryFn: () => get<IntentAnalytics>("/analytics/conversion/session-based"),
+        staleTime: 15 * 60 * 1000,   // used on both Overview + Analytics — don't re-fetch on every navigation
         retry: false,
         refetchOnWindowFocus: false
     })
@@ -206,6 +212,8 @@ export function useProviderPerformanceMetrics(providerId: string, lastDays: numb
 }
 
 // Custom hook to bypass the backend metric bug by fetching all providers
+// TODO: Replace with a dedicated /admin/providers/count?status=VERIFIED endpoint
+//       to avoid downloading the full provider list just to count verified ones.
 export function useLiveProvidersCount() {
     return useQuery({
         queryKey: ["live-providers-count"],
@@ -214,7 +222,9 @@ export function useLiveProvidersCount() {
             if (!res?.success || !res.data) return 0
             return res.data.filter((p: any) => p.trust_status === 'VERIFIED').length
         },
-        staleTime: 5 * 60 * 1000,
+        staleTime: 15 * 60 * 1000,    // was 5 min — extended to reduce full-list fetches
+        refetchInterval: 15 * 60 * 1000, // only auto-poll every 15 min
+        refetchOnWindowFocus: false,   // never refetch just because admin switched tabs
         retry: false
     })
 }

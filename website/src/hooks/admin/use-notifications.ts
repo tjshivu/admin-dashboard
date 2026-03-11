@@ -59,7 +59,7 @@ export function useNotifications() {
 
         const socket: Socket = io(socketUrl, {
             withCredentials: true,
-            transports: ["websocket", "polling"],
+            transports: ["websocket"], // websocket-only: avoids HTTP polling fallback that can spike backend CPU
         });
 
         socket.on("connect", () => {

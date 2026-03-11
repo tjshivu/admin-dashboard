@@ -317,6 +317,8 @@ export default function DashboardPage() {
 
     const { data: liveProvidersCount, isLoading: isLoadingProviders } = useLiveProvidersCount()
     const { data: liveData, isLoading: isLoadingLive } = useLiveAnalytics()
+    // useDashboardSnapshots no longer owns the 'daily' query — useLiveAnalytics does.
+    // This eliminates the duplicate 'live-analytics-today' key with a conflicting 5-min interval.
     const { activeSnapshot, isLoading: isLoadingSnapshot } = useDashboardSnapshots(true, timeRange)
     const { data: intentRes, isLoading: isLoadingIntent } = useIntentAnalytics()
 
