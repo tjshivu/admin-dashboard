@@ -8,6 +8,7 @@ import { SubCategoryFormDialog } from "./sub-category-form-dialog"
 import { DeleteDialog } from "./delete-dialog"
 import Image from "next/image"
 import { useAdminProfile } from "@/hooks/admin/use-admin-profile"
+import { getImageUrl } from "@/lib/admin/utils"
 
 interface SubCategory {
     _id: string
@@ -69,7 +70,7 @@ export function SubCategoryList({ categoryId, categoryName }: SubCategoryListPro
                             {/* Icon */}
                             <div className="h-12 w-12 rounded-lg bg-slate-100 border border-slate-200 overflow-hidden flex-shrink-0 flex items-center justify-center">
                                 {sub.icon_url ? (
-                                    <Image src={sub.icon_url} alt={sub.name} width={48} height={48} className="object-cover h-full w-full" />
+                                    <Image src={getImageUrl(sub.icon_url)} alt={sub.name} width={48} height={48} className="object-cover h-full w-full" />
                                 ) : (
                                     <div className="text-slate-400 text-xs font-medium">No Icon</div>
                                 )}

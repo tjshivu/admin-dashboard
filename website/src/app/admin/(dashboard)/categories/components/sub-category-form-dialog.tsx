@@ -12,6 +12,7 @@ import { Label } from "@/components/admin/ui/label"
 import { Textarea } from "@/components/admin/ui/textarea"
 import { Plus, Loader2, UploadCloud, X } from "lucide-react"
 import Image from "next/image"
+import { getImageUrl } from "@/lib/admin/utils"
 
 interface SubCategory {
     _id: string
@@ -68,10 +69,8 @@ export function SubCategoryFormDialog({ subCategory, categoryId, trigger }: SubC
         formData.append("image", file)
 
         // Using native fetch because api.ts assumes JSON payload usually unless overridden
-        const baseUrl = process.env.NEXT_PUBLIC_API_URL
-        const cleanBase = baseUrl?.endsWith('/') ? baseUrl.slice(0, -1) : baseUrl
-
-        const res = await fetch(`${cleanBase}/uploads/images/no-moderation`, {
+        // Use /api prefix — proxied server-side by next.config.ts to avoid CORS
+        const res = await fetch(`/api/uploads/images/no-moderation`, {
             method: "POST",
             credentials: "include",
             body: formData,
@@ -190,7 +189,7 @@ export function SubCategoryFormDialog({ subCategory, categoryId, trigger }: SubC
                                         <div className="h-16 w-16 rounded-xl border-2 border-dashed border-slate-200 bg-slate-50 flex items-center justify-center relative overflow-hidden group">
                                             {previewUrl ? (
                                                 <>
-                                                    <Image src={previewUrl} alt="Preview" fill className="object-cover" />
+                                                    <Image src={getImageUrl(previewUrl)} alt="Preview" fill className="object-cover" />
                                                     {selectedFile && (
                                                         <div className="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
                                                             <button type="button" onClick={clearFile} className="bg-red-500 text-white p-1 rounded-full hover:bg-red-600">

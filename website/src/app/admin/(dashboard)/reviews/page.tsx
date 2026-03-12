@@ -12,6 +12,7 @@ import { PageContainer } from "@/components/admin/ui/page-container"
 import { SectionHeader } from "@/components/admin/ui/section-header"
 import { useToast } from "@/components/admin/providers/toast-provider"
 import { useNotifications } from "@/hooks/admin/use-notifications"
+import { getImageUrl } from "@/lib/admin/utils"
 
 interface ReviewImage {
     image_url: string
@@ -352,7 +353,7 @@ export default function ReviewsPage() {
                                                         <a key={img.image_id} href={img.image_url} target="_blank" rel="noreferrer" className="shrink-0 flex-none group">
                                                             <div className="h-24 w-24 rounded-xl border border-slate-200 overflow-hidden shadow-sm group-hover:opacity-80 transition-opacity">
                                                                 {/* eslint-disable-next-line @next/next/no-img-element */}
-                                                                <img src={img.thumbnail_url || img.image_url} alt="Review attachment" className="h-full w-full object-cover" />
+                                                                <img src={getImageUrl(img.thumbnail_url || img.image_url)} alt="Review attachment" className="h-full w-full object-cover" />
                                                             </div>
                                                         </a>
                                                     ))}

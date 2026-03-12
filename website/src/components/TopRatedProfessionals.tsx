@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { motion } from 'framer-motion';
+import { getImageUrl } from '@/lib/admin/utils';
 
 const CACHE_KEY = 'brikup_feed_cache';
 const CACHE_TS_KEY = 'brikup_feed_ts';
@@ -20,7 +21,7 @@ function StarRating({ rating }: { rating: number }) {
     const full = Math.floor(rating);
     const half = rating - full >= 0.5;
     return (
-        <span className="flex items-center gap-0.5 text-[#D4AF37]" aria-label={`${rating} stars`}>
+        <span className="flex items-center gap-0.5 text-[#f5a623]" aria-label={`${rating} stars`}>
             {Array.from({ length: 5 }).map((_, i) => {
                 if (i < full) return <span key={i} className="text-xs">★</span>;
                 if (i === full && half) return <span key={i} className="text-xs opacity-60">★</span>;
@@ -39,28 +40,28 @@ function Avatar({ name, src }: { name: string; src?: string }) {
         return (
             // eslint-disable-next-line @next/next/no-img-element
             <img
-                src={src}
+                src={getImageUrl(src)}
                 alt={name}
                 onError={() => setImgError(true)}
-                className="w-16 h-16 rounded-2xl object-cover border-2 border-[#D4AF37]/20"
+                className="w-16 h-16 rounded-2xl object-cover border-2 border-[#f5a623]/20"
             />
         );
     }
     return (
         <div
-            className="w-16 h-16 rounded-2xl bg-gradient-to-br from-[#D4AF37]/30 to-[#D4AF37]/10 flex items-center justify-center border-2 border-[#D4AF37]/20"
+            className="w-16 h-16 rounded-2xl bg-gradient-to-br from-[#f5a623]/30 to-[#f5a623]/10 flex items-center justify-center border-2 border-[#f5a623]/20"
             aria-label={name}
         >
-            <span className="text-[#D4AF37] font-bold text-lg font-display">{initials}</span>
+            <span className="text-[#f5a623] font-bold text-lg font-display">{initials}</span>
         </div>
     );
 }
 
 function SkeletonCard() {
     return (
-        <div className="flex flex-col bg-white rounded-3xl border border-[#D4AF37]/10 p-6 h-[220px] animate-pulse">
+        <div className="flex flex-col bg-white rounded-3xl border border-[#f5a623]/10 p-6 h-[220px] animate-pulse">
             <div className="flex items-start gap-4 mb-4">
-                <div className="w-16 h-16 rounded-2xl bg-[#D4AF37]/10 flex-shrink-0" />
+                <div className="w-16 h-16 rounded-2xl bg-[#f5a623]/10 flex-shrink-0" />
                 <div className="flex-1 space-y-2 pt-1">
                     <div className="h-4 bg-[#09090b]/8 rounded-full w-3/4" />
                     <div className="h-3 bg-[#09090b]/5 rounded-full w-1/2" />
@@ -120,11 +121,11 @@ export default function TopRatedProfessionals() {
     if (!loading && error) return null;
 
     return (
-        <section className="bg-[#fafafa] py-20 px-6 md:px-12 border-b border-[#D4AF37]/10 relative z-10">
+        <section className="bg-[#fafafa] py-20 px-6 md:px-12 border-b border-[#f5a623]/10 relative z-10">
             <div className="max-w-7xl mx-auto">
                 {/* Header */}
                 <div className="mb-12">
-                    <p className="text-[#D4AF37] text-xs uppercase tracking-[0.3em] font-semibold mb-3">
+                    <p className="text-[#f5a623] text-xs uppercase tracking-[0.3em] font-semibold mb-3">
                         Verified &amp; Trusted
                     </p>
                     <h2 className="font-display text-3xl md:text-4xl font-bold tracking-tight text-[#09090b]">
@@ -141,8 +142,8 @@ export default function TopRatedProfessionals() {
                         ? Array.from({ length: 8 }).map((_, i) => <SkeletonCard key={i} />)
                         : providers.length === 0
                             ? Array.from({ length: 4 }).map((_, i) => (
-                                <div key={i} className="flex flex-col items-center justify-center bg-white rounded-3xl border border-dashed border-[#D4AF37]/20 p-6 h-[220px] text-center">
-                                    <div className="w-12 h-12 rounded-2xl bg-[#D4AF37]/10 flex items-center justify-center mb-3 text-[#D4AF37] text-xl">✦</div>
+                                <div key={i} className="flex flex-col items-center justify-center bg-white rounded-3xl border border-dashed border-[#f5a623]/20 p-6 h-[220px] text-center">
+                                    <div className="w-12 h-12 rounded-2xl bg-[#f5a623]/10 flex items-center justify-center mb-3 text-[#f5a623] text-xl">✦</div>
                                     <p className="text-[#09090b]/40 text-xs font-medium">Professionals<br />Coming Soon</p>
                                 </div>
                             ))
@@ -154,10 +155,10 @@ export default function TopRatedProfessionals() {
                                     transition={{ delay: idx * 0.07, duration: 0.5 }}
                                     viewport={{ once: true }}
                                     whileHover={{ y: -5 }}
-                                    className="group relative flex flex-col bg-white rounded-3xl border border-[#D4AF37]/15 p-6 h-[220px] transition-all duration-300 hover:border-[#D4AF37]/40 hover:shadow-[0_16px_40px_-8px_rgba(212,175,55,0.12)]"
+                                    className="group relative flex flex-col bg-white rounded-3xl border border-[#f5a623]/15 p-6 h-[220px] transition-all duration-300 hover:border-[#f5a623]/40 hover:shadow-[0_16px_40px_-8px_rgba(245,166,35,0.12)]"
                                 >
                                     {/* Gold hover line */}
-                                    <div className="absolute top-0 left-0 right-0 h-[2px] rounded-t-3xl bg-gradient-to-r from-transparent via-[#D4AF37]/60 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+                                    <div className="absolute top-0 left-0 right-0 h-[2px] rounded-t-3xl bg-gradient-to-r from-transparent via-[#f5a623]/60 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
 
                                     {/* Top row: avatar + info */}
                                     <div className="flex items-start gap-4 mb-3">
@@ -184,7 +185,7 @@ export default function TopRatedProfessionals() {
 
                                     {/* Trust badge */}
                                     <div className="mb-3">
-                                        <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-[#D4AF37]/10 border border-[#D4AF37]/20 text-[10px] font-semibold text-[#D4AF37] uppercase tracking-wide">
+                                        <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-[#f5a623]/10 border border-[#f5a623]/20 text-[10px] font-semibold text-[#f5a623] uppercase tracking-wide">
                                             ✓ Verified
                                         </span>
                                     </div>

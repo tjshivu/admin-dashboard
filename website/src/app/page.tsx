@@ -23,15 +23,15 @@ const Footer = dynamic(() => import('@/components/Footer'), {
 
 const HERO_IMAGES = [
   {
-    src: "/images/hero-illustrations/barber_men.jpg",
+    src: "/images/hero-illustrations/barber_men.webp",
     alt: "BrikUp barber professional in Bengaluru"
   },
   {
-    src: "/images/hero-illustrations/make_up_artist.png",
+    src: "/images/hero-illustrations/make_up_artist.webp",
     alt: "BrikUp makeup artist professional in Bengaluru"
   },
   {
-    src: "/images/hero-illustrations/tattoo_artist.jpg",
+    src: "/images/hero-illustrations/tattoo_artist.webp",
     alt: "BrikUp tattoo artist professional in Bengaluru"
   }
 ];
@@ -51,16 +51,16 @@ export default function Home() {
     <main className="bg-white min-h-screen text-[#09090b] font-sans selection:bg-[#D4AF37] selection:text-black flex flex-col relative overflow-hidden">
 
       {/* Hero Section */}
-      <div className="flex-1 flex flex-col lg:flex-row items-center justify-center pt-32 pb-16 px-6 md:px-12 lg:px-24 relative z-10 gap-12 lg:gap-24 transition-all duration-700 ease-in-out bg-white border-b border-[#D4AF37]/10">
+      <div className="flex-1 flex flex-col lg:flex-row items-center justify-center pt-24 md:pt-32 pb-12 md:pb-16 px-6 md:px-12 lg:px-24 relative z-10 gap-8 lg:gap-24 transition-all duration-700 ease-in-out bg-white border-b border-[#f5a623]/10">
         {/* Left Side: Content */}
-        <div className="flex-1 text-center lg:text-left space-y-8 max-w-2xl">
+        <div className="flex-1 text-center lg:text-left space-y-6 md:space-y-8 max-w-2xl">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.8 }}
           >
-            <AnimatedShinyText className="inline-flex items-center justify-center lg:justify-start px-4 py-2">
-              <span className="text-5xl md:text-7xl lg:text-8xl font-bold tracking-tighter leading-tight text-[#09090b]">
+            <AnimatedShinyText className="inline-flex items-center justify-center lg:justify-start px-2 md:px-4 py-2">
+              <span className="text-4xl sm:text-5xl md:text-7xl lg:text-8xl font-bold tracking-tighter leading-tight text-[#09090b]">
                 Discover.<br />
                 Trust.<br />
                 Book.
@@ -72,7 +72,7 @@ export default function Home() {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ delay: 0.4, duration: 0.8 }}
-            className="text-[#09090b]/60 text-lg md:text-xl font-medium leading-relaxed max-w-xl mx-auto lg:mx-0"
+            className="text-[#09090b]/60 text-base md:text-xl font-medium leading-relaxed max-w-xl mx-auto lg:mx-0"
           >
             BrikUp connects you with verified local professionals so you can find the right service and book with confidence.
           </motion.p>
@@ -109,7 +109,7 @@ export default function Home() {
       </div>
 
       {/* Trust Section */}
-      <section className="bg-[#fafafa] py-20 px-6 md:px-12 border-b border-[#D4AF37]/10 relative z-10">
+      <section className="bg-[#fafafa] py-20 px-6 md:px-12 border-b border-[#f5a623]/10 relative z-10">
         <div className="max-w-7xl mx-auto">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
             <motion.div
@@ -132,19 +132,19 @@ export default function Home() {
               whileInView={{ opacity: 1, scale: 1 }}
               viewport={{ once: true }}
               transition={{ duration: 0.8 }}
-              className="relative p-10 rounded-3xl border border-[#D4AF37]/30 bg-[#f9f9f9] backdrop-blur-sm"
+              className="relative p-6 md:p-10 rounded-3xl border border-[#f5a623]/30 bg-[#f9f9f9] backdrop-blur-sm shadow-clean-md"
             >
-              <div className="grid grid-cols-2 gap-6">
+              <div className="grid grid-cols-2 gap-3 md:gap-6">
                 {[
                   { label: "Verified Professionals", value: "100%", sub: "Profile checks" },
                   { label: "Authentic Reviews", value: "Real", sub: "Community vetted" },
                   { label: "Easy Booking", value: "Simple", sub: "Confirm in seconds" },
                   { label: "Instant Service", value: "Instant", sub: "Verified experts" }
                 ].map((stat) => (
-                  <div key={stat.label} className="space-y-1 p-4 rounded-2xl bg-white/[0.03] border border-white/5">
-                    <p className="text-[#D4AF37] font-bold text-2xl font-display">{stat.value}</p>
-                    <p className="text-[#09090b] text-sm font-semibold">{stat.label}</p>
-                    <p className="text-[#09090b]/40 text-xs">{stat.sub}</p>
+                  <div key={stat.label} className="space-y-1 p-3 md:p-4 rounded-2xl bg-white border border-[#f5a623]/10 shadow-clean-sm flex flex-col justify-center min-h-[110px] md:min-h-[130px]">
+                    <p className="text-[#f5a623] font-bold text-xl md:text-2xl font-display">{stat.value}</p>
+                    <p className="text-[#09090b] text-[11px] md:text-sm font-semibold leading-tight">{stat.label}</p>
+                    <p className="text-[#09090b]/40 text-[9px] md:text-xs">{stat.sub}</p>
                   </div>
                 ))}
               </div>
@@ -166,7 +166,7 @@ export default function Home() {
 
       {/* Upward Glow (Subtle gold) */}
       <div className="absolute inset-x-0 bottom-0 h-1/2 pointer-events-none z-0">
-        <div className="absolute inset-0 bg-gradient-to-t from-[#D4AF37]/5 via-transparent to-transparent blur-3xl opacity-20" />
+        <div className="absolute inset-0 bg-gradient-to-t from-[#f5a623]/5 via-transparent to-transparent blur-3xl opacity-20" />
       </div>
 
       {/* Lazy loaded Footer */}

@@ -9,7 +9,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Button } from "@/components/admin/ui/button"
 import { Card, CardContent } from "@/components/admin/ui/card"
 import { X, Search, Download, FileText, AlertTriangle } from "lucide-react"
-import { cn } from "@/lib/admin/utils"
+import { cn, getImageUrl } from "@/lib/admin/utils"
 import { useToast } from "@/components/admin/providers/toast-provider"
 import { PageContainer } from "@/components/admin/ui/page-container"
 import { SectionHeader } from "@/components/admin/ui/section-header"
@@ -146,7 +146,7 @@ export default function ProvidersPage() {
         setActionLoading(true)
         try {
             const res = await post(`/admin/providers/${id}/approve`, {})
-            if (res && res.success) {
+            if (res?.success) {
                 showToast({ type: "success", message: "Provider approved successfully" })
                 logAdminAction("Provider Approved", `Provider ID ${id} was approved.`)
                 await fetchProviderDetail(id)
@@ -154,9 +154,9 @@ export default function ProvidersPage() {
             } else {
                 showToast({ type: "error", message: res?.message || "Failed to approve provider" })
             }
-        } catch (e) {
-            console.error(e)
-            showToast({ type: "error", message: "An error occurred" })
+        } catch (e: any) {
+            console.error("[handleApprove]", e)
+            showToast({ type: "error", message: e?.message || "An error occurred while approving" })
         } finally {
             setActionLoading(false)
         }
@@ -174,7 +174,7 @@ export default function ProvidersPage() {
         setActionLoading(true)
         try {
             const res = await post(`/admin/providers/${id}/reject`, { reject_reason: reason.trim() })
-            if (res && res.success) {
+            if (res?.success) {
                 showToast({ type: "success", message: "Provider rejected successfully" })
                 logAdminAction("Provider Rejected", `Provider ID ${id} was rejected. Reason: ${reason.trim()}`)
                 await fetchProviderDetail(id)
@@ -182,9 +182,9 @@ export default function ProvidersPage() {
             } else {
                 showToast({ type: "error", message: res?.message || "Failed to reject provider" })
             }
-        } catch (e) {
-            console.error(e)
-            showToast({ type: "error", message: "An error occurred" })
+        } catch (e: any) {
+            console.error("[handleReject]", e)
+            showToast({ type: "error", message: e?.message || "An error occurred while rejecting" })
         } finally {
             setActionLoading(false)
         }
@@ -195,11 +195,15 @@ export default function ProvidersPage() {
         e.preventDefault()
         try {
             let fetchUrl = docUrl
-            if (docUrl.includes('/uploads/docs/') && !docUrl.includes('/admin/')) {
+            if (docUrl.includes('/uploads/docs/')) {
+                // Always use the Next.js proxy (/api) so the auth cookie is sent
+                // on the same origin. NEXT_PUBLIC_API_URL is cross-domain and
+                // browsers strip cookies on cross-origin requests.
                 const parts = docUrl.split('/uploads/docs/')
-                const baseUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:52732/api"
-                const cleanBaseUrl = baseUrl.endsWith('/') ? baseUrl.slice(0, -1) : baseUrl
-                fetchUrl = `${cleanBaseUrl}/uploads/docs/admin/${parts[1].split('?')[0]}`
+                const docPath = parts[1].split('?')[0]
+                // Route through proxy: include /admin/ prefix if not already present
+                const adminPath = docPath.startsWith('admin/') ? docPath : `admin/${docPath}`
+                fetchUrl = `/api/uploads/docs/${adminPath}`
 
                 showToast({ type: "info", message: "Loading secure document..." })
 
@@ -234,7 +238,7 @@ export default function ProvidersPage() {
         setActionLoading(true)
         try {
             const res = await post(`/admin/providers/${id}/suspend`, {})
-            if (res && res.success) {
+            if (res?.success) {
                 showToast({ type: "success", message: "Provider suspended successfully" })
                 logAdminAction("Provider Suspended", `Provider ID ${id} was suspended.`)
                 await fetchProviderDetail(id)
@@ -242,9 +246,9 @@ export default function ProvidersPage() {
             } else {
                 showToast({ type: "error", message: res?.message || "Failed to suspend provider" })
             }
-        } catch (e) {
-            console.error(e)
-            showToast({ type: "error", message: "An error occurred" })
+        } catch (e: any) {
+            console.error("[handleSuspend]", e)
+            showToast({ type: "error", message: e?.message || "An error occurred while suspending" })
         } finally {
             setActionLoading(false)
         }
@@ -573,7 +577,7 @@ export default function ProvidersPage() {
                                         return (
                                             <div className="grid grid-cols-2 gap-3">
                                                 {docs.map((doc, idx) => {
-                                                    const url = doc.document_url;
+                                                    const url = getImageUrl(doc.document_url);
                                                     const isPdf = !!(doc as any).metadata?.gridfs_id || (url && (url.includes('/uploads/docs/') || url.toLowerCase().endsWith('.pdf')));
                                                     const name = (doc as any).metadata?.originalname
                                                         || (doc.document_type || '').replaceAll('_', ' ')
@@ -646,7 +650,7 @@ export default function ProvidersPage() {
                                                     <div className="flex items-start gap-3 p-4">
                                                         {svc.service_image && (
                                                             // eslint-disable-next-line @next/next/no-img-element
-                                                            <img src={svc.service_image} alt={svc.name} className="w-14 h-14 rounded-lg object-cover shrink-0 border border-slate-200" />
+                                                            <img src={getImageUrl(svc.service_image)} alt={svc.name} className="w-14 h-14 rounded-lg object-cover shrink-0 border border-slate-200" />
                                                         )}
                                                         <div className="flex-1 min-w-0">
                                                             <div className="flex justify-between items-start gap-2">

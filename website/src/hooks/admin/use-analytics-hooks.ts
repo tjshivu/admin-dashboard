@@ -119,7 +119,7 @@ export function useOperationalInsights() {
 }
 
 export function useAnalyticsData(
-    tab: 'daily' | 'weekly' | 'monthly'
+    tab: 'daily' | 'weekly' | 'monthly' | 'all-time'
 ) {
     const selectedDay = getUTCDayStr()
     const selectedWeek = getUTCWeekStr()

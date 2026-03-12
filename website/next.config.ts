@@ -1,11 +1,6 @@
 import type { NextConfig } from "next";
-import path from "path";
 
 const nextConfig: NextConfig = {
-  outputFileTracingRoot: path.join(__dirname, "../"),
-  turbopack: {
-    root: path.join(__dirname, "../"),
-  },
   // Compression
   compress: true,
 
@@ -34,6 +29,10 @@ const nextConfig: NextConfig = {
         protocol: 'https',
         hostname: 'h8DxKfmAPhn8O0p3.public.blob.vercel-storage.com',
       },
+      {
+        protocol: 'https',
+        hostname: 'api.brikuptech.com',
+      },
     ],
     formats: ['image/avif', 'image/webp'],
     minimumCacheTTL: 60 * 60 * 24 * 30, // 30 days
@@ -44,7 +43,7 @@ const nextConfig: NextConfig = {
     return [
       {
         source: '/api/:path*',
-        destination: `${process.env.NEXT_PUBLIC_API_URL || 'https://api.brikuptech.com/api'}/:path*`,
+        destination: `${process.env.BACKEND_URL || 'https://api.brikuptech.com/api'}/:path*`,
       },
     ];
   },
@@ -90,8 +89,8 @@ const nextConfig: NextConfig = {
               "script-src 'self' 'unsafe-eval' 'unsafe-inline'",
               "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
               "font-src 'self' https://fonts.gstatic.com",
-              "img-src 'self' data: blob: https://randomuser.me https://api.qrserver.com https://h8DxKfmAPhn8O0p3.public.blob.vercel-storage.com",
-              `connect-src 'self' https://api.brikuptech.com${process.env.NODE_ENV === 'development' ? ' http://localhost:*' : ''}`,
+              "img-src 'self' data: blob: https://randomuser.me https://api.qrserver.com https://h8DxKfmAPhn8O0p3.public.blob.vercel-storage.com https://api.brikuptech.com https://ik.imagekit.io",
+              `connect-src 'self' https://api.brikuptech.com${process.env.NODE_ENV === 'development' ? ' http://localhost:* ws://localhost:*' : ''}`,
               "frame-ancestors 'none'",
             ].join('; '),
           },

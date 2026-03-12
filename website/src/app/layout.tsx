@@ -1,18 +1,12 @@
 import type { Metadata } from "next";
-import { Titillium_Web, Inter } from "next/font/google";
+import { Roboto } from "next/font/google";
 import { Analytics } from "@vercel/analytics/next";
 import ConditionalHeader from "@/components/ConditionalHeader";
 import "./globals.css";
 
-const titillium = Titillium_Web({
+const roboto = Roboto({
   subsets: ["latin"],
-  weight: ["300", "400", "600", "700", "900"],
-  variable: "--font-display",
-  display: "swap",
-});
-
-const inter = Inter({
-  subsets: ["latin"],
+  weight: ["300", "400", "500", "700", "900"],
   variable: "--font-sans",
   display: "swap",
 });
@@ -60,13 +54,13 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" className={`${titillium.variable} ${inter.variable}`} suppressHydrationWarning>
+    <html lang="en" className={`${roboto.variable} ${roboto.variable}`} suppressHydrationWarning>
       <head>
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
 
       </head>
-      <body className="antialiased bg-white text-[#09090b] selection:bg-[#D4AF37] selection:text-black font-sans">
+      <body className="antialiased bg-white text-[#09090b] selection:bg-[#f5a623] selection:text-black font-sans">
         <ConditionalHeader />
         {children}
         <script
