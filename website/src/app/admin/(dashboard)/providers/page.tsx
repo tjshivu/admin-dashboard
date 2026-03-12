@@ -195,11 +195,15 @@ export default function ProvidersPage() {
         e.preventDefault()
         try {
             let fetchUrl = docUrl
-            if (docUrl.includes('/uploads/docs/') && !docUrl.includes('/admin/')) {
+            if (docUrl.includes('/uploads/docs/')) {
+                // Always use the Next.js proxy (/api) so the auth cookie is sent
+                // on the same origin. NEXT_PUBLIC_API_URL is cross-domain and
+                // browsers strip cookies on cross-origin requests.
                 const parts = docUrl.split('/uploads/docs/')
-                const baseUrl = process.env.NEXT_PUBLIC_API_URL || '/api'
-                const cleanBaseUrl = baseUrl.endsWith('/') ? baseUrl.slice(0, -1) : baseUrl
-                fetchUrl = `${cleanBaseUrl}/uploads/docs/admin/${parts[1].split('?')[0]}`
+                const docPath = parts[1].split('?')[0]
+                // Route through proxy: include /admin/ prefix if not already present
+                const adminPath = docPath.startsWith('admin/') ? docPath : `admin/${docPath}`
+                fetchUrl = `/api/uploads/docs/${adminPath}`
 
                 showToast({ type: "info", message: "Loading secure document..." })
 
