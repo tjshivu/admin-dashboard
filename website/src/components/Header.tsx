@@ -26,7 +26,6 @@ export default function Header() {
     const baseNavLinks = [
         { label: 'Services', href: '/services' },
         { label: 'About', href: '/about' },
-        { label: 'Contact', href: '/contact' },
     ];
 
     const navLinks = pathname === '/'
@@ -42,11 +41,11 @@ export default function Header() {
                 }}
                 animate={hidden ? "hidden" : "visible"}
                 transition={{ duration: 0.3, ease: "easeInOut" }}
-                className="fixed top-0 left-0 w-full z-50 bg-white/90 backdrop-blur-md border-b border-[#D4AF37]/20 shadow-sm"
+                className="fixed top-0 left-0 w-full z-50 bg-white/90 backdrop-blur-md border-b border-[#f5a623]/20 shadow-sm"
             >
                 <div className="max-w-7xl mx-auto px-6 h-20 flex items-center justify-between">
                     {/* Logo */}
-                    <Link href="/" className="font-display text-2xl font-bold tracking-tight text-[#09090b] hover:text-[#D4AF37] transition-all">
+                    <Link href="/" className="font-display text-2xl font-bold tracking-tight text-[#09090b] hover:text-[#f5a623] transition-all">
                         BrikUp
                     </Link>
 
@@ -55,10 +54,10 @@ export default function Header() {
                         <div className="flex items-center h-full">
                             {navLinks.map((item, index) => (
                                 <div key={item.label} className="flex items-center h-full">
-                                    {index > 0 && <div className="h-4 w-[1px] bg-[#D4AF37]/20 mx-4" />}
+                                    {index > 0 && <div className="h-4 w-[1px] bg-[#f5a623]/20 mx-4" />}
                                     <Link
                                         href={item.href}
-                                        className="text-sm font-medium text-[#09090b]/60 hover:text-[#D4AF37] transition-colors"
+                                        className="text-sm font-medium text-[#09090b]/60 hover:text-[#f5a623] transition-colors"
                                     >
                                         {item.label}
                                     </Link>
@@ -66,9 +65,9 @@ export default function Header() {
                             ))}
                         </div>
 
-                        <div className="ml-8 h-4 w-[1px] bg-[#D4AF37]/20 mr-8" />
+                        <div className="ml-8 h-4 w-[1px] bg-[#f5a623]/20 mr-8" />
 
-                        <button className="text-sm font-bold bg-[#D4AF37] text-black px-4 py-1.5 rounded-full hover:bg-[#c9a227] transition-all flex items-center gap-1 cursor-default">
+                        <button className="text-sm font-bold bg-gradient-to-r from-[#f5a623] to-[#f5d061] text-black px-4 py-1.5 rounded-full hover:opacity-90 transition-all flex items-center gap-1 cursor-default">
                             App Coming Soon
                         </button>
                     </nav>
@@ -90,7 +89,7 @@ export default function Header() {
                             initial={{ opacity: 0, height: 0 }}
                             animate={{ opacity: 1, height: "auto" }}
                             exit={{ opacity: 0, height: 0 }}
-                            className="pointer-events-auto bg-white border-b border-[#D4AF37]/20 overflow-hidden md:hidden shadow-lg"
+                            className="pointer-events-auto bg-white border-b border-[#f5a623]/20 overflow-hidden md:hidden shadow-lg"
                         >
                             <div className="flex flex-col py-4 px-6 space-y-4">
                                 {navLinks.map((item) => (
@@ -98,12 +97,12 @@ export default function Header() {
                                         key={item.href}
                                         href={item.href}
                                         onClick={() => setMenuOpen(false)}
-                                        className="text-lg font-medium text-[#09090b]/60 hover:text-[#D4AF37] transition-colors"
+                                        className="text-lg font-medium text-[#09090b]/60 hover:text-[#f5a623] transition-colors"
                                     >
                                         {item.label}
                                     </Link>
                                 ))}
-                                <button className="text-lg font-bold text-[#D4AF37] pt-2 border-t border-[#D4AF37]/20 cursor-default">
+                                <button className="text-lg font-bold bg-gradient-to-r from-[#f5a623] to-[#f5d061] bg-clip-text text-transparent pt-2 border-t border-[#f5a623]/20 cursor-default">
                                     App Coming Soon
                                 </button>
                             </div>

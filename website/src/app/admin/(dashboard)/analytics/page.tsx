@@ -33,15 +33,40 @@ const CHART_MARGIN = { top: 0, right: 60, left: 10, bottom: 0 } as const
 
 export default function AnalyticsPage() {
     const today = new Date().toISOString().split('T')[0]
-    const [timeRange, setTimeRange] = useState<'daily' | 'weekly' | 'monthly'>('daily')
+    const [timeRange, setTimeRange] = useState<'daily' | 'weekly' | 'monthly' | 'all-time'>('daily')
     const { allTime, daily, weekly, monthly } = useAnalyticsData(timeRange)
     const { data: intentRes, isLoading: isLoadingIntent } = useIntentAnalytics()
 
     // active Data context depends on selection
-    const activeData = timeRange === 'daily' ? daily.data : timeRange === 'weekly' ? weekly?.data : monthly?.data
-    const isLoading = timeRange === 'daily' ? daily.isLoading : timeRange === 'weekly' ? weekly?.isLoading : monthly?.isLoading
+    const activeData = useMemo(() => {
+        if (timeRange === 'all-time') {
+            const sum = allTime.data;
+            if (!sum) return null;
+            return {
+                searches: 0, // Fallback as all-time searches isn't in summary
+                bookings: sum.totalBookings,
+                bookings_completed: sum.totalCompletedBookings,
+                avgProviderTrustScore: 0, // Fallback
+                providersInDecay: 0,
+                providersInRecovery: 0,
+                avgDecayRatio: 0,
+                throttledProviders: 0,
+                suspendedProviders: sum.suspendedProviders,
+                delistedProviders: 0,
+                pendingComplaints: 0,
+                newUserCount: sum.totalUsers,
+                returningUserCount: 0,
+                userRetentionRate: 0,
+                conversionRate: 0,
+            } as any;
+        }
+        return timeRange === 'daily' ? daily.data : timeRange === 'weekly' ? weekly?.data : monthly?.data
+    }, [timeRange, daily.data, weekly?.data, monthly?.data, allTime.data])
+
+    const isLoading = timeRange === 'daily' ? daily.isLoading : timeRange === 'all-time' ? allTime.isLoading : timeRange === 'weekly' ? weekly?.isLoading : monthly?.isLoading
     const summary = allTime.data
     const isLive = timeRange === 'daily'
+    const isAllTime = timeRange === 'all-time'
 
     const conversionRate = intentRes?.data?.data?.summary?.overallConversionRate || 0
 
@@ -59,6 +84,7 @@ export default function AnalyticsPage() {
                             <TabsTrigger value="daily" className="text-xs px-4 py-1.5 data-[state=active]:bg-violet-50 data-[state=active]:text-violet-700 dark:data-[state=active]:bg-violet-500/20 dark:data-[state=active]:text-violet-300">Daily</TabsTrigger>
                             <TabsTrigger value="weekly" className="text-xs px-4 py-1.5 data-[state=active]:bg-violet-50 data-[state=active]:text-violet-700 dark:data-[state=active]:bg-violet-500/20 dark:data-[state=active]:text-violet-300">Weekly</TabsTrigger>
                             <TabsTrigger value="monthly" className="text-xs px-4 py-1.5 data-[state=active]:bg-violet-50 data-[state=active]:text-violet-700 dark:data-[state=active]:bg-violet-500/20 dark:data-[state=active]:text-violet-300">Monthly</TabsTrigger>
+                            <TabsTrigger value="all-time" className="text-xs px-4 py-1.5 data-[state=active]:bg-violet-50 data-[state=active]:text-violet-700 dark:data-[state=active]:bg-violet-500/20 dark:data-[state=active]:text-violet-300">All-Time</TabsTrigger>
                         </TabsList>
                     </Tabs>
                 </div>
@@ -68,16 +94,17 @@ export default function AnalyticsPage() {
                     <SectionLabel label="Platform Activity" sub="User engagement & presence" />
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                         <MetricCard
-                            title={isLive ? "DAU" : timeRange === 'weekly' ? "WAU" : "MAU"}
+                            title={isLive ? "DAU" : isAllTime ? "Total Users" : timeRange === 'weekly' ? "WAU" : "MAU"}
                             value={isLoading ? "..." : formatNumber(
                                 isLive ? (activeData?.dau ?? 0)
-                                    : timeRange === 'weekly' ? (activeData?.wau ?? 0)
-                                        : (activeData?.mau ?? 0)
+                                    : isAllTime ? (summary?.totalUsers ?? 0)
+                                        : timeRange === 'weekly' ? (activeData?.wau ?? 0)
+                                            : (activeData?.mau ?? 0)
                             )}
-                            sub="Active Users"
+                            sub={isAllTime ? "Cumulative Active Accounts" : "Active Users"}
                             icon={<Users className="w-4 h-4 text-blue-500" />}
                             isLive={isLive}
-                            description={isLive ? "Unique users active today." : `Unique active users for this ${timeRange} period.`}
+                            description={isLive ? "Unique users active today." : isAllTime ? "Total unique user accounts registered." : `Unique active users for this ${timeRange} period.`}
                         />
                         <MetricCard
                             title="Total Users"
@@ -95,6 +122,45 @@ export default function AnalyticsPage() {
                             description={isLive ? "% of yesterday's users who returned today." : `% of users retained this ${timeRange} period.`}
                         />
                     </div>
+                    {isLive && (
+                        <div className="mt-6 flex flex-wrap gap-4 bg-slate-50/50 dark:bg-neutral-800/20 p-4 rounded-xl border border-slate-100 dark:border-neutral-800">
+                            <div className="flex flex-col gap-1.5 p-3 rounded-lg bg-white dark:bg-neutral-900 border border-slate-200 dark:border-neutral-800 shadow-sm min-w-[160px] transition-all hover:scale-[1.02]">
+                                <div className="flex items-center justify-between gap-2">
+                                    <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest flex items-center gap-1.5 ">
+                                        <div className="w-1.5 h-1.5 rounded-full bg-blue-500" />
+                                        New Users
+                                    </span>
+                                    <UITooltip>
+                                        <TooltipTrigger asChild>
+                                            <Info className="w-3 h-3 text-slate-400" />
+                                        </TooltipTrigger>
+                                        <TooltipContent className="text-[10px] p-2 bg-slate-900 text-white border-none">
+                                            Users who created their account today.
+                                        </TooltipContent>
+                                    </UITooltip>
+                                </div>
+                                <span className="text-2xl font-bold text-slate-900 dark:text-white tabular-nums">{isLoading ? "..." : formatNumber(activeData?.newUserCount || 0)}</span>
+                            </div>
+                            
+                            <div className="flex flex-col gap-1.5 p-3 rounded-lg bg-white dark:bg-neutral-900 border border-slate-200 dark:border-neutral-800 shadow-sm min-w-[160px] transition-all hover:scale-[1.02]">
+                                <div className="flex items-center justify-between gap-2">
+                                    <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest flex items-center gap-1.5 ">
+                                        <div className="w-1.5 h-1.5 rounded-full bg-indigo-500" />
+                                        Returning Users
+                                    </span>
+                                    <UITooltip>
+                                        <TooltipTrigger asChild>
+                                            <Info className="w-3 h-3 text-slate-400" />
+                                        </TooltipTrigger>
+                                        <TooltipContent className="text-[10px] p-2 bg-slate-900 text-white border-none">
+                                            Active users who registered before today.
+                                        </TooltipContent>
+                                    </UITooltip>
+                                </div>
+                                <span className="text-2xl font-bold text-slate-900 dark:text-white tabular-nums">{isLoading ? "..." : formatNumber(activeData?.returningUserCount || 0)}</span>
+                            </div>
+                        </div>
+                    )}
                 </div>
 
                 {/* SECTION 2 — DEMAND & BOOKINGS */}
@@ -129,7 +195,7 @@ export default function AnalyticsPage() {
                             sub="Search → Booking"
                             icon={<Target className="w-4 h-4 text-violet-500" />}
                             isLive={isLive}
-                            description={`% of searches that result in a booking (${timeRange}).`}
+                            description={isLive ? "% of searches that result in a booking (Live)." : `% of searches that result in a booking (${timeRange}).`}
                         />
                         <MetricCard
                             title="Bookings"
@@ -137,7 +203,7 @@ export default function AnalyticsPage() {
                             sub={`Initiated ${timeRange}`}
                             icon={<Activity className="w-4 h-4 text-emerald-500" />}
                             isLive={isLive}
-                            description={`Total bookings initiated in this ${timeRange} period.`}
+                            description={isLive ? "Total bookings initiated today (Live)." : `Total bookings initiated in this ${timeRange} period.`}
                         />
                     </div>
                 </div>
@@ -146,46 +212,284 @@ export default function AnalyticsPage() {
                 <div className="mb-10">
                     <SectionLabel label="Supply Health" sub="Provider ecosystem metrics" />
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                        <MetricCard
-                            title="Total Providers"
-                            value={allTime.isLoading ? "..." : formatNumber(summary?.totalProviders || 0)}
-                            sub="Supply volume"
-                            icon={<Activity className="w-4 h-4 text-indigo-500" />}
-                            description="Total registered service providers. Updated: Midnight."
-                        />
-                        <MetricCard
-                            title="Avg Trust Score"
-                            value={isLoading ? '...' : (activeData?.avgProviderTrustScore || 0).toFixed(2)}
-                            sub="System quality avg"
-                            icon={<ShieldCheck className="w-4 h-4 text-emerald-500" />}
-                            isLive={isLive}
-                            description="Mean trust score across all providers (0-100)."
-                        />
-                        <div className="grid grid-cols-2 gap-4">
-                            <MetricCard
-                                title="In Decay"
-                                value={isLoading ? '...' : formatNumber(activeData?.providersInDecay || 0)}
-                                sub="Trust declining"
-                                icon={<Activity className="w-4 h-4 text-rose-500" />}
-                                isLive={isLive}
-                                description="Providers whose scores dropped recently."
-                            />
-                            <MetricCard
-                                title="In Recovery"
-                                value={isLoading ? '...' : formatNumber(activeData?.providersInRecovery || 0)}
-                                sub="Rebuilding"
-                                icon={<Activity className="w-4 h-4 text-blue-500" />}
-                                isLive={isLive}
-                                description="Providers whose scores are improving."
-                            />
-                        </div>
-                        <MetricCard
-                            title="Review Density"
-                            value={isLoading ? '...' : `${((activeData?.booking_to_review_ratio || 0) * 100).toFixed(1)}%`}
-                            sub="Feedback frequency"
-                            icon={<Star className="w-4 h-4 text-amber-500" />}
-                            description="% of bookings that receive a review. Updated: Live."
-                        />
+                        {/* Consolidated Card 1: Provider Status */}
+                        <Card className="hover:border-violet-300 dark:hover:border-violet-600 transition-all group bg-white dark:bg-neutral-900 border-slate-200 dark:border-neutral-800">
+                            <CardHeader className="p-6 pb-2">
+                                <div className="flex items-center justify-between">
+                                    <span className="text-[10px] font-black uppercase tracking-widest text-slate-400 group-hover:text-violet-600 transition-colors">Provider Status</span>
+                                    <Activity className="w-4 h-4 text-indigo-500" />
+                                </div>
+                            </CardHeader>
+                            <CardContent className="p-6 pt-2">
+                                <div className="space-y-4">
+                                    <div className="flex items-center justify-between">
+                                        <span className="text-xs font-medium text-slate-500">Total Providers</span>
+                                        <span className="text-lg font-semibold text-slate-900 dark:text-white">{allTime.isLoading ? "..." : formatNumber(summary?.totalProviders || 0)}</span>
+                                    </div>
+                                    <div className="flex items-center justify-between">
+                                        <div className="flex items-center gap-2">
+                                            <span className="text-xs font-medium text-slate-500">Verified Providers</span>
+                                            <UITooltip>
+                                                <TooltipTrigger asChild>
+                                                    <Info className="w-3 h-3 text-slate-400" />
+                                                </TooltipTrigger>
+                                                <TooltipContent className="text-[10px] p-2 bg-slate-900 text-white border-none">
+                                                    Providers who have completed identity verification.
+                                                </TooltipContent>
+                                            </UITooltip>
+                                        </div>
+                                        <span className="text-sm font-bold text-emerald-600 dark:text-emerald-400">{allTime.isLoading ? "..." : formatNumber(summary?.verifiedProviders || 0)}</span>
+                                    </div>
+                                    <div className="flex items-center justify-between">
+                                        <div className="flex items-center gap-2">
+                                            <span className="text-xs font-medium text-slate-500">Trusted Providers</span>
+                                            <UITooltip>
+                                                <TooltipTrigger asChild>
+                                                    <Info className="w-3 h-3 text-slate-400" />
+                                                </TooltipTrigger>
+                                                <TooltipContent className="text-[10px] p-2 bg-slate-900 text-white border-none">
+                                                    Providers with a trust score above 85.
+                                                </TooltipContent>
+                                            </UITooltip>
+                                        </div>
+                                        <span className="text-sm font-bold text-blue-600 dark:text-blue-400">{allTime.isLoading ? "..." : formatNumber(summary?.trustedProviders || 0)}</span>
+                                    </div>
+                                    <div className="flex items-center justify-between">
+                                        <div className="flex items-center gap-2">
+                                            <span className="text-xs font-medium text-slate-500">Resolution Rate</span>
+                                            <UITooltip>
+                                                <TooltipTrigger asChild>
+                                                    <Info className="w-3 h-3 text-slate-400" />
+                                                </TooltipTrigger>
+                                                <TooltipContent className="text-[10px] p-2 bg-slate-900 text-white border-none">
+                                                    Percentage of complaints successfully resolved.
+                                                </TooltipContent>
+                                            </UITooltip>
+                                        </div>
+                                        <span className="text-sm font-bold text-emerald-600 dark:text-emerald-400">{isLoading ? '...' : `${((activeData?.complaintResolutionRate || 0) * 100).toFixed(1)}%`}</span>
+                                    </div>
+                                    <div className="flex items-center justify-between">
+                                        <div className="flex items-center gap-2">
+                                            <span className="text-xs font-medium text-slate-500">Resolution Time</span>
+                                            <UITooltip>
+                                                <TooltipTrigger asChild>
+                                                    <Info className="w-3 h-3 text-slate-400" />
+                                                </TooltipTrigger>
+                                                <TooltipContent className="text-[10px] p-2 bg-slate-900 text-white border-none">
+                                                    Average time taken to resolve a complaint.
+                                                </TooltipContent>
+                                            </UITooltip>
+                                        </div>
+                                        <span className="text-sm font-bold text-slate-900 dark:text-white">{isLoading ? '...' : `${(activeData?.complaintResolutionTime || 0).toFixed(1)} h`}</span>
+                                    </div>
+                                    <div className="flex items-center justify-between border-t border-slate-100 dark:border-neutral-800 pt-3">
+                                        <div className="flex items-center gap-2">
+                                            <span className="text-xs font-medium text-slate-500">Open Griefs</span>
+                                            <UITooltip>
+                                                <TooltipTrigger asChild>
+                                                    <Info className="w-3 h-3 text-slate-400" />
+                                                </TooltipTrigger>
+                                                <TooltipContent className="text-[10px] p-2 bg-slate-900 text-white border-none">
+                                                    Current count of unresolved complaints.
+                                                </TooltipContent>
+                                            </UITooltip>
+                                        </div>
+                                        <span className="text-sm font-bold text-orange-600">{isLoading ? '...' : formatNumber(activeData?.pendingComplaints || 0)}</span>
+                                    </div>
+                                    <div className="flex items-center justify-between border-t border-slate-100 dark:border-neutral-800 pt-3">
+                                        <div className="flex items-center gap-2">
+                                            <span className="text-xs font-medium text-slate-500">Suspended Providers</span>
+                                            <UITooltip>
+                                                <TooltipTrigger asChild>
+                                                    <Info className="w-3 h-3 text-slate-400" />
+                                                </TooltipTrigger>
+                                                <TooltipContent className="text-[10px] p-2 bg-slate-900 text-white border-none">
+                                                    Providers restricted due to policy violations.
+                                                </TooltipContent>
+                                            </UITooltip>
+                                        </div>
+                                        <span className="text-sm font-bold text-rose-600 dark:text-rose-400">{allTime.isLoading ? "..." : formatNumber(summary?.suspendedProviders || 0)}</span>
+                                    </div>
+                                    {isLive && (
+                                        <>
+                                            <div className="flex items-center justify-between">
+                                                <div className="flex items-center gap-2">
+                                                    <span className="text-xs font-medium text-slate-500">Throttled Providers</span>
+                                                    <UITooltip>
+                                                        <TooltipTrigger asChild>
+                                                            <Info className="w-3 h-3 text-slate-400" />
+                                                        </TooltipTrigger>
+                                                        <TooltipContent className="text-[10px] p-2 bg-slate-900 text-white border-none">
+                                                            Active providers with restricted visibility.
+                                                        </TooltipContent>
+                                                    </UITooltip>
+                                                </div>
+                                                <span className="text-sm font-bold text-amber-600 dark:text-amber-400">{isLoading ? "..." : formatNumber(activeData?.throttledProviders || 0)}</span>
+                                            </div>
+                                            <div className="flex items-center justify-between">
+                                                <div className="flex items-center gap-2">
+                                                    <span className="text-xs font-medium text-slate-500">Delisted Providers</span>
+                                                    <UITooltip>
+                                                        <TooltipTrigger asChild>
+                                                            <Info className="w-3 h-3 text-slate-400" />
+                                                        </TooltipTrigger>
+                                                        <TooltipContent className="text-[10px] p-2 bg-slate-900 text-white border-none">
+                                                            Providers removed from platform searches.
+                                                        </TooltipContent>
+                                                    </UITooltip>
+                                                </div>
+                                                <span className="text-sm font-bold text-slate-600 dark:text-slate-400">{isLoading ? "..." : formatNumber(activeData?.delistedProviders || 0)}</span>
+                                            </div>
+                                        </>
+                                    )}
+                                </div>
+                            </CardContent>
+                        </Card>
+
+                        {/* Consolidated Card 2: Trust & Quality */}
+                        <Card className="hover:border-violet-300 dark:hover:border-violet-600 transition-all group bg-white dark:bg-neutral-900 border-slate-200 dark:border-neutral-800">
+                            <CardHeader className="p-6 pb-2">
+                                <div className="flex items-center justify-between">
+                                    <div className="flex items-center gap-2">
+                                        <span className="text-[10px] font-black uppercase tracking-widest text-slate-400 group-hover:text-violet-600 transition-colors">Trust & Quality</span>
+                                        {isLive && (
+                                            <span className="relative flex h-2 w-2">
+                                                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                                                <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
+                                            </span>
+                                        )}
+                                    </div>
+                                    <ShieldCheck className="w-4 h-4 text-emerald-500" />
+                                </div>
+                            </CardHeader>
+                            <CardContent className="p-6 pt-2">
+                                <div className="space-y-6">
+                                    <div className="flex flex-col gap-1">
+                                        <div className="flex items-center gap-2">
+                                            <span className="text-xs font-medium text-slate-500">Avg Provider Trust Score</span>
+                                            <UITooltip>
+                                                <TooltipTrigger asChild>
+                                                    <Info className="w-3 h-3 text-slate-400" />
+                                                </TooltipTrigger>
+                                                <TooltipContent className="text-[10px] p-2 bg-slate-900 text-white border-none">
+                                                    Mean trust score across all active providers (0-100).
+                                                </TooltipContent>
+                                            </UITooltip>
+                                        </div>
+                                        <span className="text-3xl font-bold text-slate-900 dark:text-white tabular-nums">
+                                            {isLoading ? '...' : (activeData?.avgProviderTrustScore || 0).toFixed(2)}
+                                        </span>
+                                    </div>
+                                    <div className="grid grid-cols-2 gap-3">
+                                        <div className="flex flex-col gap-1.5 p-3 rounded-lg bg-rose-50/50 dark:bg-rose-500/5 border border-rose-100 dark:border-rose-500/10">
+                                            <div className="flex items-center justify-between">
+                                                <span className="text-[10px] font-bold text-rose-600/70 dark:text-rose-400/70 uppercase tracking-tighter">In Decay</span>
+                                                <UITooltip>
+                                                    <TooltipTrigger asChild>
+                                                        <Info className="w-2.5 h-2.5 text-rose-400" />
+                                                    </TooltipTrigger>
+                                                    <TooltipContent className="text-[10px] p-2 bg-slate-900 text-white border-none">
+                                                        Providers whose trust score is currently dropping.
+                                                    </TooltipContent>
+                                                </UITooltip>
+                                            </div>
+                                            <span className="text-2xl font-bold text-rose-600 dark:text-rose-400">{isLoading ? '...' : formatNumber(activeData?.providersInDecay || 0)}</span>
+                                        </div>
+                                        <div className="flex flex-col gap-1.5 p-3 rounded-lg bg-blue-50/50 dark:bg-blue-500/5 border border-blue-100 dark:border-blue-500/10">
+                                            <div className="flex items-center justify-between">
+                                                <span className="text-[10px] font-bold text-blue-600/70 dark:text-blue-400/70 uppercase tracking-tighter">In Recovery</span>
+                                                <UITooltip>
+                                                    <TooltipTrigger asChild>
+                                                        <Info className="w-2.5 h-2.5 text-blue-400" />
+                                                    </TooltipTrigger>
+                                                    <TooltipContent className="text-[10px] p-2 bg-slate-900 text-white border-none">
+                                                        Providers whose trust score is currently rising.
+                                                    </TooltipContent>
+                                                </UITooltip>
+                                            </div>
+                                            <span className="text-2xl font-bold text-blue-600 dark:text-blue-400">{isLoading ? '...' : formatNumber(activeData?.providersInRecovery || 0)}</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </CardContent>
+                        </Card>
+
+                        {/* Consolidated Card 3: Service & Engagement */}
+                        <Card className="hover:border-violet-300 dark:hover:border-violet-600 transition-all group bg-white dark:bg-neutral-900 border-slate-200 dark:border-neutral-800">
+                            <CardHeader className="p-6 pb-2">
+                                <div className="flex items-center justify-between">
+                                    <div className="flex items-center gap-2">
+                                        <span className="text-[10px] font-black uppercase tracking-widest text-slate-400 group-hover:text-violet-600 transition-colors">Service & Engagement</span>
+                                        {isLive && (
+                                            <span className="relative flex h-2 w-2">
+                                                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                                                <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
+                                            </span>
+                                        )}
+                                    </div>
+                                    <Star className="w-4 h-4 text-amber-500" />
+                                </div>
+                            </CardHeader>
+                            <CardContent className="p-6 pt-2">
+                                <div className="space-y-6">
+                                    <div className="flex items-center justify-between">
+                                        <div className="flex items-center gap-2">
+                                            <span className="text-xs font-medium text-slate-500">Total Services</span>
+                                            <UITooltip>
+                                                <TooltipTrigger asChild>
+                                                    <Info className="w-3 h-3 text-slate-400" />
+                                                </TooltipTrigger>
+                                                <TooltipContent className="text-[10px] p-2 bg-slate-900 text-white border-none">
+                                                    Lifetime total of unique service offerings.
+                                                </TooltipContent>
+                                            </UITooltip>
+                                        </div>
+                                        <span className="text-2xl font-bold text-slate-900 dark:text-white">{allTime.isLoading ? "..." : formatNumber(summary?.totalServices || 0)}</span>
+                                    </div>
+                                    <div className="flex flex-col gap-1 items-end">
+                                        <div className="flex items-center gap-2">
+                                            <span className="text-xs font-medium text-slate-500">Platform Rating</span>
+                                            <UITooltip>
+                                                <TooltipTrigger asChild>
+                                                    <Info className="w-3 h-3 text-slate-400" />
+                                                </TooltipTrigger>
+                                                <TooltipContent className="text-[10px] p-2 bg-slate-900 text-white border-none">
+                                                    Global mean rating across all services.
+                                                </TooltipContent>
+                                            </UITooltip>
+                                        </div>
+                                        <span className="text-2xl font-bold text-amber-600 dark:text-amber-400">
+                                            {allTime.isLoading ? "..." : (summary?.platformAverageRating || 0).toFixed(1)}
+                                            <span className="text-sm font-medium text-slate-400 ml-1">/ 5</span>
+                                        </span>
+                                    </div>
+                                    <div className="p-4 rounded-xl bg-violet-50/50 dark:bg-violet-500/5 border border-violet-100 dark:border-violet-500/10">
+                                        <div className="flex items-center justify-between mb-2">
+                                            <div className="flex items-center gap-2">
+                                                <span className="text-[10px] font-bold text-violet-600 dark:text-violet-400 uppercase tracking-widest">Review Density</span>
+                                                <UITooltip>
+                                                    <TooltipTrigger asChild>
+                                                        <Info className="w-3 h-3 text-violet-400" />
+                                                    </TooltipTrigger>
+                                                    <TooltipContent className="text-[10px] p-2 bg-slate-900 text-white border-none">
+                                                        % of bookings that receive a review.
+                                                    </TooltipContent>
+                                                </UITooltip>
+                                            </div>
+                                            <span className="text-lg font-bold text-violet-700 dark:text-violet-300">
+                                                {isLoading ? '...' : `${((activeData?.booking_to_review_ratio || 0) * 100).toFixed(1)}%`}
+                                            </span>
+                                        </div>
+                                        <div className="h-1.5 w-full bg-violet-100 dark:bg-violet-500/20 rounded-full overflow-hidden">
+                                            <div 
+                                                className="h-full bg-violet-500 transition-all duration-500" 
+                                                style={{ width: `${(activeData?.booking_to_review_ratio || 0) * 100}%` }}
+                                            />
+                                        </div>
+                                    </div>
+                                </div>
+                            </CardContent>
+                        </Card>
                     </div>
                 </div>
 
@@ -200,22 +504,38 @@ export default function AnalyticsPage() {
                             icon={<MessageSquare className="w-4 h-4 text-slate-500" />}
                             description="Total lifetime sum of all grievances. Updated: Midnight."
                         />
-                        <MetricCard
-                            title="Resolution Rate"
-                            value={isLoading ? '...' : `${((activeData?.complaintResolutionRate || 0) * 100).toFixed(1)}%`}
-                            sub="Closing efficiency"
-                            icon={<ShieldCheck className="w-4 h-4 text-emerald-500" />}
-                            isLive={isLive}
-                            description="% of total complaints marked as resolved."
-                        />
-                        <MetricCard
-                            title="Open Griefs"
-                            value={isLoading ? '...' : formatNumber(activeData?.pendingComplaints || 0)}
-                            sub="Active backlog"
-                            icon={<Clock className="w-4 h-4 text-orange-500" />}
-                            isLive={isLive}
-                            description="Current count of unresolved complaints."
-                        />
+                        <Card className="hover:border-violet-300 dark:hover:border-violet-600 transition-all group bg-white dark:bg-neutral-900 border-slate-200 dark:border-neutral-800 lg:col-span-2">
+                             <CardHeader className="p-6 pb-2">
+                                <div className="flex items-center justify-between">
+                                    <div className="flex items-center gap-2">
+                                        <span className="text-[10px] font-black uppercase tracking-widest text-slate-400 group-hover:text-violet-600 transition-colors">Resolution Performance</span>
+                                        {isLive && (
+                                            <span className="relative flex h-2 w-2">
+                                                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                                                <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
+                                            </span>
+                                        )}
+                                    </div>
+                                    <ShieldCheck className="w-4 h-4 text-emerald-500" />
+                                </div>
+                            </CardHeader>
+                            <CardContent className="p-6 pt-2">
+                                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                                    <div className="flex flex-col gap-1 p-4 rounded-xl bg-emerald-50/50 dark:bg-emerald-500/5 border border-emerald-100 dark:border-emerald-500/10 transition-all hover:scale-[1.02]">
+                                        <span className="text-[10px] font-bold text-emerald-600 dark:text-emerald-400 uppercase tracking-widest mb-1">Resolution Rate</span>
+                                        <span className="text-3xl font-bold text-emerald-700 dark:text-emerald-300">{isLoading ? '...' : `${((activeData?.complaintResolutionRate || 0) * 100).toFixed(1)}%`}</span>
+                                    </div>
+                                    <div className="flex flex-col gap-1 p-4 rounded-xl bg-slate-50/50 dark:bg-neutral-800/50 border border-slate-100 dark:border-neutral-800 transition-all hover:scale-[1.02]">
+                                        <span className="text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-1">Resolution Time</span>
+                                        <span className="text-3xl font-bold text-slate-900 dark:text-white">{isLoading ? '...' : `${(activeData?.complaintResolutionTime || 0).toFixed(1)} h`}</span>
+                                    </div>
+                                    <div className="flex flex-col gap-1 p-4 rounded-xl bg-orange-50/50 dark:bg-orange-500/5 border border-orange-100 dark:border-orange-500/10 transition-all hover:scale-[1.02]">
+                                        <span className="text-[10px] font-bold text-orange-600 dark:text-orange-400 uppercase tracking-widest mb-1">Open Griefs</span>
+                                        <span className="text-3xl font-bold text-orange-700 dark:text-orange-300">{isLoading ? '...' : formatNumber(activeData?.pendingComplaints || 0)}</span>
+                                    </div>
+                                </div>
+                            </CardContent>
+                        </Card>
                     </div>
                 </div>
 
@@ -229,7 +549,7 @@ export default function AnalyticsPage() {
                             sub="Path conversion"
                             icon={<Target className="w-4 h-4 text-violet-500" />}
                             isLive={isLive}
-                            description="% of all visitor sessions that end in a booking."
+                            description={isLive ? "% of all visitor sessions that end in a booking (Live)." : "% of all visitor sessions that end in a booking."}
                         />
                         <MetricCard
                             title="Avg Session"
@@ -237,6 +557,13 @@ export default function AnalyticsPage() {
                             sub="Time on platform"
                             icon={<Clock className="w-4 h-4 text-slate-500" />}
                             description="Average duration of user sessions. Updated: Midnight."
+                        />
+                        <MetricCard
+                            title="Friction Rate"
+                            value={isLoading ? '...' : (activeData?.searchBookFunnel?.avgStepsToBooking || 0).toFixed(1)}
+                            sub="Avg steps to book"
+                            icon={<Activity className="w-4 h-4 text-rose-500" />}
+                            description="Average number of interaction steps before a booking is completed."
                         />
                     </div>
                 </div>

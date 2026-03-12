@@ -25,7 +25,8 @@ import { Tabs, TabsList, TabsTrigger } from "@/components/admin/ui/tabs"
 import {
     useDashboardSnapshots,
     useIntentAnalytics,
-    useLiveProvidersCount
+    useLiveProvidersCount,
+    useAnalyticsData
 } from "@/hooks/admin/use-analytics-hooks"
 import { useLiveAnalytics } from "@/hooks/admin/use-live-analytics"
 import { formatNumber } from "@/lib/admin/utils"
@@ -313,24 +314,29 @@ function ConversionTrendChart({ isLoading, breakdown }: {
 
 export default function DashboardPage() {
     const router = useRouter()
-    const [timeRange, setTimeRange] = useState<'daily' | 'weekly' | 'monthly'>('daily')
+    const [timeRange, setTimeRange] = useState<'daily' | 'weekly' | 'monthly' | 'all-time'>('daily')
 
     const { data: liveProvidersCount, isLoading: isLoadingProviders } = useLiveProvidersCount()
     const { data: liveData, isLoading: isLoadingLive } = useLiveAnalytics()
+    const { allTime } = useAnalyticsData(timeRange)
     // useDashboardSnapshots no longer owns the 'daily' query — useLiveAnalytics does.
     // This eliminates the duplicate 'live-analytics-today' key with a conflicting 5-min interval.
-    const { activeSnapshot, isLoading: isLoadingSnapshot } = useDashboardSnapshots(true, timeRange)
+    const { activeSnapshot, isLoading: isLoadingSnapshot } = useDashboardSnapshots(true, timeRange === 'all-time' ? 'daily' : timeRange) // Use daily as fallback for hook enabled check
     const { data: intentRes, isLoading: isLoadingIntent } = useIntentAnalytics()
+
+    const summary = allTime.data
+    const isLoadingSummary = allTime.isLoading
 
     const conversionRate = intentRes?.data?.data?.summary?.overallConversionRate ?? 0
     const dailyBreakdown = intentRes?.data?.data?.dailyBreakdown
 
     const isLive = timeRange === 'daily'
-    const isLoadingMetrics = isLive ? isLoadingLive : isLoadingSnapshot
-    const activeUsers = isLive ? liveData?.dau : (timeRange === 'weekly' ? (activeSnapshot?.wau ?? 0) : (activeSnapshot?.mau ?? 0))
-    const activeSearches = isLive ? liveData?.searches : (activeSnapshot?.searches ?? 0)
-    const activeBookings = isLive ? liveData?.bookings : (activeSnapshot?.bookings ?? 0)
-    const activeRetention = isLive ? liveData?.userRetentionRate : (activeSnapshot?.userRetentionRate ?? 0)
+    const isAllTime = timeRange === 'all-time'
+    const isLoadingMetrics = isLive ? isLoadingLive : isAllTime ? isLoadingSummary : isLoadingSnapshot
+    const activeUsers = isLive ? liveData?.dau : isAllTime ? summary?.totalUsers : (timeRange === 'weekly' ? (activeSnapshot?.wau ?? 0) : (activeSnapshot?.mau ?? 0))
+    const activeSearches = isLive ? liveData?.searches : isAllTime ? 0 : (activeSnapshot?.searches ?? 0)
+    const activeBookings = isLive ? liveData?.bookings : isAllTime ? summary?.totalBookings : (activeSnapshot?.bookings ?? 0)
+    const activeRetention = isLive ? liveData?.userRetentionRate : isAllTime ? 0 : (activeSnapshot?.userRetentionRate ?? 0)
 
     return (
         <PageContainer>
@@ -342,6 +348,7 @@ export default function DashboardPage() {
                             <TabsTrigger value="daily" className="text-xs px-4 py-1.5 data-[state=active]:bg-violet-50 data-[state=active]:text-violet-700 dark:data-[state=active]:bg-violet-500/20 dark:data-[state=active]:text-violet-300">Daily</TabsTrigger>
                             <TabsTrigger value="weekly" className="text-xs px-4 py-1.5 data-[state=active]:bg-violet-50 data-[state=active]:text-violet-700 dark:data-[state=active]:bg-violet-500/20 dark:data-[state=active]:text-violet-300">Weekly</TabsTrigger>
                             <TabsTrigger value="monthly" className="text-xs px-4 py-1.5 data-[state=active]:bg-violet-50 data-[state=active]:text-violet-700 dark:data-[state=active]:bg-violet-500/20 dark:data-[state=active]:text-violet-300">Monthly</TabsTrigger>
+                            <TabsTrigger value="all-time" className="text-xs px-4 py-1.5 data-[state=active]:bg-violet-50 data-[state=active]:text-violet-700 dark:data-[state=active]:bg-violet-500/20 dark:data-[state=active]:text-violet-300">All-Time</TabsTrigger>
                         </TabsList>
                     </Tabs>
                 </div>
@@ -362,21 +369,73 @@ export default function DashboardPage() {
                             isLive={isLive}
                             description={isLive ? "Logged-in users active today." : `Active users for this ${timeRange} period.`}
                         />
-                        <MetricCard
-                            title="Live Providers"
-                            value={isLoadingProviders ? "..." : formatNumber(liveProvidersCount ?? 0)}
-                            sub="Active Supply"
-                            icon={<ShieldCheck className="w-4 h-4 text-emerald-500" />}
-                            isLive={true}
-                            description="Active, searchable supply currently on the platform."
-                        />
+                        <Card className="hover:border-violet-300 dark:hover:border-violet-600 transition-all group bg-white dark:bg-neutral-900 border-slate-200 dark:border-neutral-800">
+                            <CardHeader className="p-6 pb-2">
+                                <div className="flex items-center justify-between">
+                                    <div className="flex items-center gap-2">
+                                        <span className="text-[10px] font-black uppercase tracking-widest text-slate-400 group-hover:text-violet-600 transition-colors">Provider Status</span>
+                                        <span className="relative flex h-2 w-2">
+                                            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                                            <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
+                                        </span>
+                                    </div>
+                                    <ShieldCheck className="w-4 h-4 text-emerald-500" />
+                                </div>
+                            </CardHeader>
+                            <CardContent className="p-6 pt-2">
+                                <div className="space-y-4">
+                                    <div className="flex items-center justify-between">
+                                        <div className="flex items-center gap-2">
+                                            <span className="text-xs font-medium text-slate-500">Verified Providers</span>
+                                            <UITooltip>
+                                                <TooltipTrigger asChild>
+                                                    <Info className="w-3 h-3 text-slate-400" />
+                                                </TooltipTrigger>
+                                                <TooltipContent className="text-[10px] p-2 bg-slate-900 text-white border-none">
+                                                    Providers who have completed identity verification.
+                                                </TooltipContent>
+                                            </UITooltip>
+                                        </div>
+                                        <span className="text-sm font-bold text-emerald-600 dark:text-emerald-400">{isLoadingProviders ? "..." : formatNumber(liveProvidersCount ?? 0)}</span>
+                                    </div>
+                                    <div className="flex items-center justify-between">
+                                        <div className="flex items-center gap-2">
+                                            <span className="text-xs font-medium text-slate-500">Trusted Providers</span>
+                                            <UITooltip>
+                                                <TooltipTrigger asChild>
+                                                    <Info className="w-3 h-3 text-slate-400" />
+                                                </TooltipTrigger>
+                                                <TooltipContent className="text-[10px] p-2 bg-slate-900 text-white border-none">
+                                                    Providers with a trust score above 85.
+                                                </TooltipContent>
+                                            </UITooltip>
+                                        </div>
+                                        <span className="text-sm font-bold text-blue-600 dark:text-blue-400">{isLoadingSummary ? "..." : formatNumber(summary?.trustedProviders || 0)}</span>
+                                    </div>
+                                    <div className="flex items-center justify-between">
+                                        <div className="flex items-center gap-2">
+                                            <span className="text-xs font-medium text-slate-500">Suspended Providers</span>
+                                            <UITooltip>
+                                                <TooltipTrigger asChild>
+                                                    <Info className="w-3 h-3 text-slate-400" />
+                                                </TooltipTrigger>
+                                                <TooltipContent className="text-[10px] p-2 bg-slate-900 text-white border-none">
+                                                    Providers restricted due to policy violations.
+                                                </TooltipContent>
+                                            </UITooltip>
+                                        </div>
+                                        <span className="text-sm font-bold text-rose-600 dark:text-rose-400">{isLoadingSummary ? "..." : formatNumber(summary?.suspendedProviders || 0)}</span>
+                                    </div>
+                                </div>
+                            </CardContent>
+                        </Card>
                         <MetricCard
                             title="Conversion Rate"
                             value={isLoadingIntent ? "..." : `${((isLive ? conversionRate : (activeSnapshot?.conversionRate ?? 0)) * 100).toFixed(1)}%`}
                             sub="Search → Booking"
                             icon={<Target className="w-4 h-4 text-violet-500" />}
                             isLive={isLive}
-                            description="Sessions with search that resulted in a booking."
+                            description={isLive ? "Sessions with searches resulting in a booking (Live)." : "Sessions with search that resulted in a booking."}
                         />
                         <MetricCard
                             title="Repeat Users"
@@ -384,7 +443,7 @@ export default function DashboardPage() {
                             sub="Returning User Rate"
                             icon={<Heart className="w-4 h-4 text-rose-500" />}
                             isLive={isLive}
-                            description="Returning users as a % of total actives."
+                            description={isLive ? "Returning users as a % of total actives (Live)." : "Returning users as a % of total actives."}
                         />
                     </div>
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 pt-6">

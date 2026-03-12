@@ -51,7 +51,7 @@ const serviceCategories = [
 
 export default function ServicesPage() {
     return (
-        <main className="min-h-screen bg-white text-[#09090b] font-sans selection:bg-[#D4AF37] selection:text-black pb-0">
+        <main className="min-h-screen bg-white text-[#09090b] font-sans selection:bg-[#f5a623] selection:text-black pb-0">
             {/* Hero Header Space */}
             <div className="pt-24 pb-12 md:pt-32 md:pb-16 px-6 text-center max-w-4xl mx-auto">
                 <h1 className="font-display text-4xl md:text-5xl lg:text-6xl font-bold tracking-tight mb-6 leading-tight text-[#09090b]">
@@ -64,14 +64,14 @@ export default function ServicesPage() {
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-8 md:gap-12">
                     {serviceCategories.map((category, idx) => (
                         <div key={idx} className="flex flex-col">
-                            <h2 className="text-2xl md:text-3xl font-bold mb-6 border-b border-[#D4AF37]/30 pb-2 text-[#D4AF37]">
+                            <h2 className="text-2xl md:text-3xl font-bold mb-6 border-b border-[#f5a623]/30 pb-2 text-[#f5a623]">
                                 {category.title}
                             </h2>
                             <div className="flex flex-wrap gap-3">
                                 {category.services.map((service, sIdx) => (
                                     <div
                                         key={sIdx}
-                                        className="px-4 py-2 rounded-full border border-[#D4AF37]/40 text-sm md:text-base font-medium whitespace-nowrap bg-[#D4AF37]/10 shadow-sm"
+                                        className="px-4 py-2 rounded-full border border-[#f5a623]/40 text-sm md:text-base font-medium whitespace-nowrap bg-[#f5a623]/10 shadow-sm"
                                     >
                                         <AnimatedShinyText className="text-[#09090b]">
                                             {service}

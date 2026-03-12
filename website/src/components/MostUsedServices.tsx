@@ -31,7 +31,7 @@ export default function MostUsedServices() {
         <section className="max-w-7xl mx-auto w-full px-6 md:px-12 py-20 relative z-10 bg-white">
             <div className="max-w-7xl mx-auto">
                 <div className="mb-12">
-                    <p className="text-[#D4AF37] text-xs uppercase tracking-[0.3em] font-semibold mb-3">
+                    <p className="text-[#f5a623] text-xs uppercase tracking-[0.3em] font-semibold mb-3">
                         What We Offer
                     </p>
                     <h2 className="font-display text-3xl md:text-4xl font-bold tracking-tight text-[#09090b]">
@@ -48,10 +48,10 @@ export default function MostUsedServices() {
                             transition={{ delay: idx * 0.1, duration: 0.5 }}
                             viewport={{ once: true }}
                             whileHover={{ y: -6 }}
-                            className="group relative flex flex-col bg-white rounded-3xl border border-[#D4AF37]/15 overflow-hidden h-[360px] transition-all duration-300 hover:border-[#D4AF37]/40 hover:shadow-[0_16px_40px_-8px_rgba(212,175,55,0.12)]"
+                            className="group relative flex flex-col bg-white rounded-3xl border border-[#f5a623]/15 overflow-hidden h-[360px] transition-all duration-300 hover:border-[#f5a623]/40 hover:shadow-[0_16px_40px_-8px_rgba(212,175,55,0.12)]"
                         >
                             {/* Gold top accent line */}
-                            <div className="absolute top-0 left-0 right-0 h-[2px] bg-gradient-to-r from-transparent via-[#D4AF37]/50 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+                            <div className="absolute top-0 left-0 right-0 h-[2px] bg-gradient-to-r from-transparent via-[#f5a623]/50 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
 
                             {/* Image area */}
                             <div className="flex-1 relative flex items-center justify-center p-6 pb-2 bg-white">

@@ -13,7 +13,7 @@ import { useToast } from "@/components/admin/providers/toast-provider"
 import { ChevronLeft, ChevronRight, AlertCircle, Clock, CheckCircle2, XCircle, Image as ImageIcon } from "lucide-react"
 import { PageContainer } from "@/components/admin/ui/page-container"
 import { SectionHeader } from "@/components/admin/ui/section-header"
-import { cn } from "@/lib/admin/utils"
+import { cn, getImageUrl } from "@/lib/admin/utils"
 import { useNotifications } from "@/hooks/admin/use-notifications"
 
 // Types based on the backend Complaint model
@@ -361,7 +361,7 @@ export default function ComplaintsPage() {
                                                         <a key={img.image_id || `img-${idx}`} href={img.image_url} target="_blank" rel="noreferrer" className="shrink-0 block">
                                                             <div className="h-24 w-24 rounded-lg bg-white border border-slate-200 overflow-hidden hover:opacity-80 transition-opacity shadow-sm">
                                                                 {/* eslint-disable-next-line @next/next/no-img-element */}
-                                                                <img src={img.thumbnail_url || img.image_url} alt="Proof" className="w-full h-full object-cover" />
+                                                                <img src={getImageUrl(img.thumbnail_url || img.image_url)} alt="Proof" className="w-full h-full object-cover" />
                                                             </div>
                                                         </a>
                                                     ))}

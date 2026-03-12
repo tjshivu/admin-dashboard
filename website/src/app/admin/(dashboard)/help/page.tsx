@@ -7,7 +7,7 @@ import { Badge } from "@/components/admin/ui/badge"
 import {
     Users, ShoppingBag, ShieldCheck,
     MessageSquare, Target, Activity,
-    Heart, Clock, Info, Star
+    Heart, Clock, Info, Star, TrendingUp
 } from "lucide-react"
 
 const METRICS_DOCS = [
@@ -35,6 +35,22 @@ const METRICS_DOCS = [
                 isLive: true,
                 formula: "(Retained Users) / (Yesterday's Users)",
                 details: "Measures day-over-day stickiness. Calculates the percentage of unique users active yesterday who returned to the platform today.",
+                updated: "Every 30 minutes (Cron)"
+            },
+            {
+                name: "New Users",
+                icon: <Users className="w-4 h-4 text-blue-500" />,
+                isLive: true,
+                formula: "Count of User documents created today",
+                details: "Measures platform growth by counting unique user registrations that occurred within the current calendar day.",
+                updated: "Every 30 minutes (Cron)"
+            },
+            {
+                name: "Returning Users",
+                icon: <Users className="w-4 h-4 text-indigo-500" />,
+                isLive: true,
+                formula: "DAU - New Users",
+                details: "Measures existing user engagement. These are active users who registered on any day prior to the current one.",
                 updated: "Every 30 minutes (Cron)"
             }
         ]
@@ -71,6 +87,14 @@ const METRICS_DOCS = [
                 formula: "(Direct Conversions) / (Total Sessions)",
                 details: "Measures overall platform health. The percentage of all visitor sessions that successfully converted into a transaction.",
                 updated: "Every 30 minutes (Cron)"
+            },
+            {
+                name: "Friction Rate",
+                icon: <Activity className="w-4 h-4 text-rose-500" />,
+                isLive: true,
+                formula: "Avg(Steps per booking)",
+                details: "Measures the complexity of the booking process. The average number of clicks/interactions a user goes through before successfully booking.",
+                updated: "Every 30 minutes (Cron)"
             }
         ]
     },
@@ -78,14 +102,42 @@ const METRICS_DOCS = [
         category: "Supply & Trust",
         metrics: [
             {
-                name: "Total Providers",
-                icon: <Activity className="w-4 h-4 text-indigo-500" />,
-                formula: "Count of Provider documents where status != 'deleted'",
-                details: "The total number of service providers currently registered on the platform, encompassing active, pending, and suspended accounts, excluding only deleted ones.",
+                name: "Verified Providers",
+                icon: <ShieldCheck className="w-4 h-4 text-emerald-500" />,
+                formula: "Count of Providers where trust_status === 'VERIFIED'",
+                details: "The total number of providers who have successfully completed the identity and quality verification process.",
                 updated: "Every 24 hours (Midnight)"
             },
             {
-                name: "Avg Trust Score",
+                name: "Trusted Providers",
+                icon: <Star className="w-4 h-4 text-blue-500" />,
+                formula: "Count of providers with TrustScore > 85",
+                details: "Providers who consistently maintain high performance standards and have earned the 'Trusted' badge.",
+                updated: "Every 24 hours (Midnight)"
+            },
+            {
+                name: "Suspended Providers",
+                icon: <Activity className="w-4 h-4 text-rose-500" />,
+                formula: "Count of Providers where status === 'suspended'",
+                details: "Accounts currently restricted from receiving new bookings due to policy violations or unresolved disputes.",
+                updated: "Every 24 hours (Midnight)"
+            },
+            {
+                name: "Total Services",
+                icon: <ShoppingBag className="w-4 h-4 text-indigo-500" />,
+                formula: "Count of all Service documents",
+                details: "The lifetime total of unique service offerings listed across all categories by all providers.",
+                updated: "Every 24 hours (Midnight)"
+            },
+            {
+                name: "Platform Average Rating",
+                icon: <Star className="w-4 h-4 text-amber-500" />,
+                formula: "Average of all non-deleted Reviews",
+                details: "The global mean rating across every service provided on the platform, reflecting overall ecosystem satisfaction.",
+                updated: "Every 24 hours (Midnight)"
+            },
+            {
+                name: "Avg Provider Trust Score",
                 icon: <ShieldCheck className="w-4 h-4 text-emerald-500" />,
                 isLive: true,
                 formula: "System average Provider Metrics trust_score",
@@ -93,19 +145,35 @@ const METRICS_DOCS = [
                 updated: "Every 30 minutes (Cron)"
             },
             {
-                name: "Trust Decay / Recovery",
-                icon: <Activity className="w-4 h-4 text-rose-500" />,
+                name: "Throttled Providers",
+                icon: <Activity className="w-4 h-4 text-amber-500" />,
                 isLive: true,
-                formula: "Count of providers with Negative vs Positive score delta",
-                details: "Decay tracks providers whose trust score dropped since the last calculation. Recovery tracks those whose score improved after a penalty.",
+                formula: "Count(Providers w/ restricted visibility)",
+                details: "Providers who have been temporarily limited in search results due to low response rates or minor policy warnings.",
+                updated: "Every 30 minutes (Cron)"
+            },
+            {
+                name: "Delisted Providers",
+                icon: <ShieldCheck className="w-4 h-4 text-slate-500" />,
+                isLive: true,
+                formula: "Count(Providers hidden from search)",
+                details: "Providers whose listings are completely hidden from the public search while they undergo review or corrective action.",
                 updated: "Every 30 minutes (Cron)"
             },
             {
                 name: "Review Density",
-                icon: <Star className="w-4 h-4 text-amber-500" />,
-                formula: "(Reviews Submitted) / (Total Successful)",
-                details: "Measures the feedback loop quality. High density indicates a highly engaged and satisfied user base for that specific service.",
+                icon: <Star className="w-4 h-4 text-violet-500" />,
+                formula: "Total Reviews / Total Success Bookings",
+                details: "Measures the completeness of feedback. Shows what percentage of successful services result in a user review.",
                 updated: "Every 24 hours (Midnight)"
+            },
+            {
+                name: "Supply Decay/Recovery",
+                icon: <TrendingUp className="w-4 h-4 text-rose-500" />,
+                isLive: true,
+                formula: "Delta(TrustScore) over 24h",
+                details: "Tracks the momentum of provider quality. 'Decay' represents falling scores, while 'Recovery' represents improvements.",
+                updated: "Every 30 minutes (Cron)"
             }
         ]
     },

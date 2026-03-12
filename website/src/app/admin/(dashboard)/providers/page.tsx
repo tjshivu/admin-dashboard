@@ -9,7 +9,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Button } from "@/components/admin/ui/button"
 import { Card, CardContent } from "@/components/admin/ui/card"
 import { X, Search, Download, FileText, AlertTriangle } from "lucide-react"
-import { cn } from "@/lib/admin/utils"
+import { cn, getImageUrl } from "@/lib/admin/utils"
 import { useToast } from "@/components/admin/providers/toast-provider"
 import { PageContainer } from "@/components/admin/ui/page-container"
 import { SectionHeader } from "@/components/admin/ui/section-header"
@@ -577,7 +577,7 @@ export default function ProvidersPage() {
                                         return (
                                             <div className="grid grid-cols-2 gap-3">
                                                 {docs.map((doc, idx) => {
-                                                    const url = doc.document_url;
+                                                    const url = getImageUrl(doc.document_url);
                                                     const isPdf = !!(doc as any).metadata?.gridfs_id || (url && (url.includes('/uploads/docs/') || url.toLowerCase().endsWith('.pdf')));
                                                     const name = (doc as any).metadata?.originalname
                                                         || (doc.document_type || '').replaceAll('_', ' ')
@@ -650,7 +650,7 @@ export default function ProvidersPage() {
                                                     <div className="flex items-start gap-3 p-4">
                                                         {svc.service_image && (
                                                             // eslint-disable-next-line @next/next/no-img-element
-                                                            <img src={svc.service_image} alt={svc.name} className="w-14 h-14 rounded-lg object-cover shrink-0 border border-slate-200" />
+                                                            <img src={getImageUrl(svc.service_image)} alt={svc.name} className="w-14 h-14 rounded-lg object-cover shrink-0 border border-slate-200" />
                                                         )}
                                                         <div className="flex-1 min-w-0">
                                                             <div className="flex justify-between items-start gap-2">

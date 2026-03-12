@@ -51,7 +51,7 @@ export default function Home() {
     <main className="bg-white min-h-screen text-[#09090b] font-sans selection:bg-[#D4AF37] selection:text-black flex flex-col relative overflow-hidden">
 
       {/* Hero Section */}
-      <div className="flex-1 flex flex-col lg:flex-row items-center justify-center pt-32 pb-16 px-6 md:px-12 lg:px-24 relative z-10 gap-12 lg:gap-24 transition-all duration-700 ease-in-out bg-white border-b border-[#D4AF37]/10">
+      <div className="flex-1 flex flex-col lg:flex-row items-center justify-center pt-32 pb-16 px-6 md:px-12 lg:px-24 relative z-10 gap-12 lg:gap-24 transition-all duration-700 ease-in-out bg-white border-b border-[#f5a623]/10">
         {/* Left Side: Content */}
         <div className="flex-1 text-center lg:text-left space-y-8 max-w-2xl">
           <motion.div
@@ -109,7 +109,7 @@ export default function Home() {
       </div>
 
       {/* Trust Section */}
-      <section className="bg-[#fafafa] py-20 px-6 md:px-12 border-b border-[#D4AF37]/10 relative z-10">
+      <section className="bg-[#fafafa] py-20 px-6 md:px-12 border-b border-[#f5a623]/10 relative z-10">
         <div className="max-w-7xl mx-auto">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
             <motion.div
@@ -132,7 +132,7 @@ export default function Home() {
               whileInView={{ opacity: 1, scale: 1 }}
               viewport={{ once: true }}
               transition={{ duration: 0.8 }}
-              className="relative p-10 rounded-3xl border border-[#D4AF37]/30 bg-[#f9f9f9] backdrop-blur-sm shadow-clean-md"
+              className="relative p-10 rounded-3xl border border-[#f5a623]/30 bg-[#f9f9f9] backdrop-blur-sm shadow-clean-md"
             >
               <div className="grid grid-cols-2 gap-6">
                 {[
@@ -141,8 +141,8 @@ export default function Home() {
                   { label: "Easy Booking", value: "Simple", sub: "Confirm in seconds" },
                   { label: "Instant Service", value: "Instant", sub: "Verified experts" }
                 ].map((stat) => (
-                  <div key={stat.label} className="space-y-1 p-4 rounded-2xl bg-white border border-[#D4AF37]/10 shadow-clean-sm">
-                    <p className="text-[#D4AF37] font-bold text-2xl font-display">{stat.value}</p>
+                  <div key={stat.label} className="space-y-1 p-4 rounded-2xl bg-white border border-[#f5a623]/10 shadow-clean-sm">
+                    <p className="text-[#f5a623] font-bold text-2xl font-display">{stat.value}</p>
                     <p className="text-[#09090b] text-sm font-semibold">{stat.label}</p>
                     <p className="text-[#09090b]/40 text-xs">{stat.sub}</p>
                   </div>
@@ -166,7 +166,7 @@ export default function Home() {
 
       {/* Upward Glow (Subtle gold) */}
       <div className="absolute inset-x-0 bottom-0 h-1/2 pointer-events-none z-0">
-        <div className="absolute inset-0 bg-gradient-to-t from-[#D4AF37]/5 via-transparent to-transparent blur-3xl opacity-20" />
+        <div className="absolute inset-0 bg-gradient-to-t from-[#f5a623]/5 via-transparent to-transparent blur-3xl opacity-20" />
       </div>
 
       {/* Lazy loaded Footer */}
