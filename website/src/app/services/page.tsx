@@ -1,6 +1,5 @@
 'use client';
 
-import Footer from '@/components/Footer';
 import { AnimatedShinyText } from '@/components/ui/animated-shiny-text';
 
 const serviceCategories = [
@@ -85,7 +84,6 @@ export default function ServicesPage() {
                 </div>
             </div>
 
-            <Footer />
         </main>
     );
 }

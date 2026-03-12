@@ -197,7 +197,7 @@ export default function ProvidersPage() {
             let fetchUrl = docUrl
             if (docUrl.includes('/uploads/docs/') && !docUrl.includes('/admin/')) {
                 const parts = docUrl.split('/uploads/docs/')
-                const baseUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:52732/api"
+                const baseUrl = process.env.NEXT_PUBLIC_API_URL || '/api'
                 const cleanBaseUrl = baseUrl.endsWith('/') ? baseUrl.slice(0, -1) : baseUrl
                 fetchUrl = `${cleanBaseUrl}/uploads/docs/admin/${parts[1].split('?')[0]}`
 

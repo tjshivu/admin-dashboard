@@ -54,8 +54,7 @@ export function useNotifications() {
     useEffect(() => {
         if (!adminProfile?.id || !process.env.NEXT_PUBLIC_API_URL) return;
 
-        const baseUrl = process.env.NEXT_PUBLIC_API_URL;
-        const socketUrl = baseUrl.replace("/api", "");
+        const socketUrl = process.env.NEXT_PUBLIC_API_URL; // e.g. http://localhost:52732
 
         const socket: Socket = io(socketUrl, {
             withCredentials: true,
@@ -139,8 +138,9 @@ export function useNotifications() {
         if (id.startsWith("temp_")) return; // Don't try to sync temp items
 
         try {
-            await patch(`/notifications/me/admin/${id}/read`, {});
-            queryClient.invalidateQueries({ queryKey: ["notifications"] });
+            // BACKEND BUG: Disabled until backend req.admin._id is fixed
+            // await patch(`/notifications/me/admin/${id}/read`, {});
+            // queryClient.invalidateQueries({ queryKey: ["notifications"] });
         } catch (err) {
             console.error("[Notifications] Failed to mark as read on server:", err);
         }
@@ -151,8 +151,9 @@ export function useNotifications() {
             prev.map(n => n.event === event ? { ...n, read: true } : n)
         );
         try {
-            await patch(`/notifications/me/admin/mark-event-read/${event}`, {});
-            queryClient.invalidateQueries({ queryKey: ["notifications"] });
+            // BACKEND BUG: Disabled until backend req.admin._id is fixed
+            // await patch(`/notifications/me/admin/mark-event-read/${event}`, {});
+            // queryClient.invalidateQueries({ queryKey: ["notifications"] });
         } catch (err) {
             console.error(`[Notifications] Failed to mark ${event} as read:`, err);
         }
@@ -161,8 +162,9 @@ export function useNotifications() {
     const markAllAsRead = useCallback(async () => {
         setLocalNotifications(prev => prev.map(n => ({ ...n, read: true })));
         try {
-            await patch(`/notifications/me/admin/mark-all-read`, {});
-            queryClient.invalidateQueries({ queryKey: ["notifications"] });
+            // BACKEND BUG: Disabled until backend req.admin._id is fixed
+            // await patch(`/notifications/me/admin/mark-all-read`, {});
+            // queryClient.invalidateQueries({ queryKey: ["notifications"] });
         } catch (err) {
             console.error("[Notifications] Failed to mark all as read on server:", err);
         }

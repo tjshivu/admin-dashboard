@@ -1,5 +1,5 @@
-// Use env var if set, otherwise fall back to /api (which is proxied by next.config.ts rewrite)
-const BASE_URL = process.env.NEXT_PUBLIC_API_URL || '/api';
+// Always use the /api prefix — proxied server-side by next.config.ts rewrites to avoid CORS
+const BASE_URL = '/api';
 import { queryClient } from "./query-client";
 import { getUTCDayStr } from "./date-utils";
 import {
@@ -180,8 +180,8 @@ export async function logAdminAction(title: string, description: string) {
         await post("/notifications/create", {
             recipientType: "admin",
             // Assuming no specific recipientId refers to a global admin broadcast, 
-            // since the backend requires recipientId, we can pass a dummy ObjectId or the current admin's ID.
-            recipientId: "000000000000000000000000",
+            // since the backend requires recipientId, we will pass a valid 24-char hex string as a fallback.
+            recipientId: "64a0f4a86f1e8e2b8c9d0f1a",
             event: title,
             payload: { description }
         });

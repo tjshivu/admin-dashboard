@@ -68,10 +68,8 @@ export function SubCategoryFormDialog({ subCategory, categoryId, trigger }: SubC
         formData.append("image", file)
 
         // Using native fetch because api.ts assumes JSON payload usually unless overridden
-        const baseUrl = process.env.NEXT_PUBLIC_API_URL
-        const cleanBase = baseUrl?.endsWith('/') ? baseUrl.slice(0, -1) : baseUrl
-
-        const res = await fetch(`${cleanBase}/uploads/images/no-moderation`, {
+        // Use /api prefix — proxied server-side by next.config.ts to avoid CORS
+        const res = await fetch(`/api/uploads/images/no-moderation`, {
             method: "POST",
             credentials: "include",
             body: formData,

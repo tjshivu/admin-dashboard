@@ -1,0 +1,40 @@
+/* ── Website Color Theme ────────────────────────────────────────────────
+   Edit values here to change the website colors easily.
+──────────────────────────────────────────────────────────────────────── */
+
+/* Global semantic colors */
+:root {
+  --background: #ffffff;
+  --foreground: #09090b;
+  
+  --card: #f9f9f9;
+  --card-foreground: #09090b;
+  
+  --primary: #D4AF37;
+  --primary-foreground: #000000;
+  
+  --secondary: #1a1a1a;
+  --secondary-foreground: #ffffff;
+  
+  --muted: #1a1a1a;
+  --muted-foreground: #a0a0a0;
+  
+  --accent: #D4AF37;
+  --accent-foreground: #000000;
+  
+  --border: #2a2a2a;
+  --input: #f4f4f4;
+  --ring: #D4AF37;
+}
+
+/* Tailwind configuration overrides */
+@theme {
+  --color-background: #000000;
+  --color-foreground: #ffffff;
+  --color-card-bg: #111111;
+  --color-text-muted: #a0a0a0;
+  --color-border-subtle: #2a2a2a;
+  --color-accent: #D4AF37;
+  --color-gold: #D4AF37;
+  --color-gold-muted: rgba(212, 175, 55, 0.15);
+}

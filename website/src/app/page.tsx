@@ -132,7 +132,7 @@ export default function Home() {
               whileInView={{ opacity: 1, scale: 1 }}
               viewport={{ once: true }}
               transition={{ duration: 0.8 }}
-              className="relative p-10 rounded-3xl border border-[#D4AF37]/30 bg-[#f9f9f9] backdrop-blur-sm"
+              className="relative p-10 rounded-3xl border border-[#D4AF37]/30 bg-[#f9f9f9] backdrop-blur-sm shadow-clean-md"
             >
               <div className="grid grid-cols-2 gap-6">
                 {[
@@ -141,7 +141,7 @@ export default function Home() {
                   { label: "Easy Booking", value: "Simple", sub: "Confirm in seconds" },
                   { label: "Instant Service", value: "Instant", sub: "Verified experts" }
                 ].map((stat) => (
-                  <div key={stat.label} className="space-y-1 p-4 rounded-2xl bg-white/[0.03] border border-white/5">
+                  <div key={stat.label} className="space-y-1 p-4 rounded-2xl bg-white border border-[#D4AF37]/10 shadow-clean-sm">
                     <p className="text-[#D4AF37] font-bold text-2xl font-display">{stat.value}</p>
                     <p className="text-[#09090b] text-sm font-semibold">{stat.label}</p>
                     <p className="text-[#09090b]/40 text-xs">{stat.sub}</p>
