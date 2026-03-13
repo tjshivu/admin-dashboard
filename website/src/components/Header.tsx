@@ -67,7 +67,7 @@ export default function Header() {
 
                         <div className="ml-8 h-4 w-[1px] bg-[#f5a623]/20 mr-8" />
 
-                        <button className="text-sm font-bold bg-gradient-to-r from-[#f5a623] to-[#f5d061] text-black px-4 py-1.5 rounded-full hover:opacity-90 transition-all flex items-center gap-1 cursor-default">
+                        <button className="text-[14px] font-semibold bg-[#F59E0B] text-white px-6 py-2 rounded-[40px] hover:opacity-90 transition-all flex items-center gap-1 cursor-default">
                             App Coming Soon
                         </button>
                     </nav>
@@ -102,7 +102,7 @@ export default function Header() {
                                         {item.label}
                                     </Link>
                                 ))}
-                                <button className="text-lg font-bold bg-gradient-to-r from-[#f5a623] to-[#f5d061] bg-clip-text text-transparent pt-2 border-t border-[#f5a623]/20 cursor-default">
+                                <button className="text-lg font-bold bg-[#F59E0B] text-white py-2 rounded-[40px] cursor-default mt-2">
                                     App Coming Soon
                                 </button>
                             </div>

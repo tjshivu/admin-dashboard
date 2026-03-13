@@ -3,12 +3,12 @@
 import { useState, useEffect, useRef } from "react"
 import { useRouter } from "next/navigation"
 import { Button } from "@/components/admin/ui/button"
-import { Moon, Sun, Bell, ChevronDown, CheckCheck } from "lucide-react"
+import { Moon, Sun, Bell, ChevronDown, CheckCheck, Menu } from "lucide-react"
 import { post } from "@/lib/admin/api"
 import { useAdminProfile } from "@/hooks/admin/use-admin-profile"
 import { useSharedNotifications } from "@/components/admin/providers/notification-provider"
 
-export function Header() {
+export function Header({ onMenuClick }: { onMenuClick?: () => void }) {
     const router = useRouter()
     const { adminProfile } = useAdminProfile()
     const [isDark, setIsDark] = useState(false)
@@ -61,13 +61,21 @@ export function Header() {
     }
 
     return (
-        <header className="flex h-[72px] items-center justify-between border-b border-slate-200 dark:border-neutral-800 bg-white dark:bg-neutral-900 px-8 shrink-0 z-10 shadow-[0_4px_24px_-12px_rgba(0,0,0,0.05)]">
+        <header className="flex h-[72px] items-center justify-between border-b border-slate-200 dark:border-neutral-800 bg-white dark:bg-neutral-900 px-4 md:px-8 shrink-0 z-10 shadow-[0_4px_24px_-12px_rgba(0,0,0,0.05)]">
             <div className="flex-1 flex items-center gap-4 max-w-[480px]">
+                <Button
+                    variant="ghost"
+                    size="icon"
+                    className="md:hidden text-slate-600 dark:text-neutral-400"
+                    onClick={onMenuClick}
+                >
+                    <Menu className="h-5 w-5" />
+                </Button>
             </div>
 
             <div className="flex items-center gap-2 lg:gap-3 ml-auto">
                 {currentTime && (
-                    <div className="hidden md:flex flex-col items-end mr-4 pr-4 border-r border-slate-200 dark:border-neutral-800">
+                    <div className="hidden lg:flex flex-col items-end mr-4 pr-4 border-r border-slate-200 dark:border-neutral-800">
                         <span className="text-sm font-bold text-slate-800 dark:text-white">
                             {currentTime.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true })}
                         </span>
@@ -132,7 +140,7 @@ export function Header() {
                                         <p className="text-[10px] text-slate-400 mt-1">No recent activity detected</p>
                                     </div>
                                 ) : (
-                                    notifications.map(n => (
+                                    notifications.map((n: any) => (
                                         <div
                                             key={n._id}
                                             className={`group relative p-5 border-b border-slate-50 dark:border-neutral-800/50 last:border-0 hover:bg-slate-50/80 dark:hover:bg-neutral-800/30 transition-all cursor-pointer flex gap-4 ${!n.read ? 'bg-blue-50/10' : ''}`}

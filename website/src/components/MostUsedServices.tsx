@@ -7,39 +7,43 @@ const mostUsedServices = [
     {
         title: "Men's Salon",
         desc: "Haircuts, beard styling & grooming",
-        image: "/svg/Barber-bro.svg",
+        image: "/svg/barber.webp",
     },
     {
         title: "Bridal",
         desc: "Elegant makeup & hair styling",
-        image: "/svg/Makeup artist-bro.svg",
-    },
-    {
-        title: "Tattoo Art",
-        desc: "Custom permanent & temporary designs",
-        image: "/svg/tattoo-artist-bro.svg",
+        image: "/svg/bridal.webp",
     },
     {
         title: "Salon Care",
         desc: "Premium full-service salon experience",
-        image: "/svg/barbershop-full-of-clients-bro.svg",
+        image: "/svg/eyebrow.webp",
+    },
+    {
+        title: "Tattoo Art",
+        desc: "Custom permanent & temporary designs",
+        image: "/svg/tattoo.webp",
     }
 ];
 
+const bgColors: Record<string, string> = {
+    "Men's Salon": "bg-[#FEF9EC]",
+    "Bridal": "bg-[#FDF2F8]",
+    "Salon Care": "bg-[#F0FDF4]",
+    "Tattoo Art": "bg-[#EEF2FF]"
+};
+
 export default function MostUsedServices() {
     return (
-        <section className="max-w-7xl mx-auto w-full px-4 sm:px-6 md:px-12 py-12 md:py-20 relative z-10 bg-white">
+        <section className="w-full relative z-10 bg-[#FFFDF7] px-[40px] py-[48px]">
             <div className="max-w-7xl mx-auto">
-                <div className="mb-8 md:mb-12">
-                    <p className="text-[#f5a623] text-[10px] md:text-xs uppercase tracking-[0.2em] md:tracking-[0.3em] font-semibold mb-2 md:mb-3">
-                        What We Offer
-                    </p>
-                    <h2 className="font-display text-2xl md:text-4xl font-bold tracking-tight text-[#09090b]">
-                        Most Used Services
+                <div className="flex flex-col md:flex-row md:items-end justify-between mb-[32px] gap-4">
+                    <h2 className="font-['Syne'] text-[32px] font-[800] text-[#1a1a1a] leading-tight m-0">
+                        Explore Our Services in <span className="text-[#F59E0B]">BrikUp</span>
                     </h2>
                 </div>
 
-                <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-5">
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-[16px]">
                     {mostUsedServices.map((service, idx) => (
                         <motion.div
                             key={service.title}
@@ -47,29 +51,30 @@ export default function MostUsedServices() {
                             whileInView={{ opacity: 1, y: 0 }}
                             transition={{ delay: idx * 0.1, duration: 0.5 }}
                             viewport={{ once: true }}
-                            whileHover={{ y: -6 }}
-                            className="group relative flex flex-col bg-white rounded-2xl md:rounded-3xl border border-[#f5a623]/15 overflow-hidden transition-all duration-300 hover:border-[#f5a623]/40 hover:shadow-[0_16px_40px_-8px_rgba(212,175,55,0.12)]"
+                            className="bg-white rounded-[20px] border border-[#FDE68A] overflow-hidden transition-all duration-200 hover:-translate-y-1 hover:shadow-sm flex flex-col"
                         >
-                            {/* Gold top accent line */}
-                            <div className="absolute top-0 left-0 right-0 h-[2px] bg-gradient-to-r from-transparent via-[#f5a623]/50 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
-
                             {/* Image area */}
-                            <div className="aspect-square sm:aspect-auto sm:flex-1 relative flex items-center justify-center p-3 sm:p-6 pb-2 bg-white">
-                                <div className="relative w-full h-full transform group-hover:scale-105 transition-transform duration-500">
+                            <div className="relative w-full h-[180px] bg-white flex items-center justify-center">
+                                <div className="relative w-full h-[140px]">
                                     <Image
                                         src={service.image}
-                                        alt={`${service.title} – ${service.desc}`}
+                                        alt={service.title}
                                         fill
                                         className="object-contain"
-                                        loading="lazy"
+                                        sizes="(max-width: 768px) 100vw, 25vw"
                                     />
                                 </div>
+                                <div className="absolute bottom-0 left-0 right-0 h-[4px] bg-gradient-to-r from-[#F59E0B] to-[#FBBF24]" />
                             </div>
 
                             {/* Content */}
-                            <div className="p-3 sm:p-6 sm:pt-3 border-t border-[#09090b]/5 bg-white">
-                                <h3 className="text-[#09090b] text-sm sm:text-lg font-bold mb-0.5 sm:mb-1 font-display truncate">{service.title}</h3>
-                                <p className="text-[#09090b]/50 text-[10px] sm:text-sm leading-relaxed line-clamp-2 md:line-clamp-none">{service.desc}</p>
+                            <div className="p-[16px] bg-white flex-1">
+                                <h3 className="font-['Syne'] text-[16px] font-[700] text-[#1a1a1a] mb-[4px] leading-tight">
+                                    {service.title}
+                                </h3>
+                                <p className="text-[#6B7280] text-[12px] leading-[1.5] m-0">
+                                    {service.desc}
+                                </p>
                             </div>
                         </motion.div>
                     ))}

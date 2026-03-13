@@ -15,19 +15,21 @@ interface Provider {
     city?: string;
     about?: string;
     averageRating?: number | null;
+    tags?: string[];
+    services?: string[];
 }
 
 function StarRating({ rating }: { rating: number }) {
     const full = Math.floor(rating);
     const half = rating - full >= 0.5;
     return (
-        <span className="flex items-center gap-0.5 text-[#f5a623]" aria-label={`${rating} stars`}>
+        <span className="flex items-center gap-0.5 text-[#F59E0B]" aria-label={`${rating} stars`}>
             {Array.from({ length: 5 }).map((_, i) => {
-                if (i < full) return <span key={i} className="text-xs">★</span>;
-                if (i === full && half) return <span key={i} className="text-xs opacity-60">★</span>;
-                return <span key={i} className="text-xs opacity-20">★</span>;
+                if (i < full) return <span key={i} className="text-sm">★</span>;
+                if (i === full && half) return <span key={i} className="text-sm opacity-60">★</span>;
+                return <span key={i} className="text-sm opacity-20">★</span>;
             })}
-            <span className="ml-1 text-[10px] font-semibold text-[#09090b]/60">{rating.toFixed(1)}</span>
+            <span className="ml-1.5 text-[11px] font-semibold text-[#9CA3AF] mt-0.5">{rating.toFixed(1)}</span>
         </span>
     );
 }
@@ -36,41 +38,40 @@ function Avatar({ name, src }: { name: string; src?: string }) {
     const [imgError, setImgError] = useState(false);
     const initials = name.split(' ').map(w => w[0]).join('').slice(0, 2).toUpperCase();
 
-    if (src && !imgError) {
-        return (
-            // eslint-disable-next-line @next/next/no-img-element
-            <img
-                src={getImageUrl(src)}
-                alt={name}
-                onError={() => setImgError(true)}
-                className="w-16 h-16 rounded-2xl object-cover border-2 border-[#f5a623]/20"
-            />
-        );
-    }
-    return (
+    const Content = (src && !imgError) ? (
+        // eslint-disable-next-line @next/next/no-img-element
+        <img
+            src={getImageUrl(src)}
+            alt={name}
+            onError={() => setImgError(true)}
+            className="w-full aspect-[4/3] rounded-[10px] object-cover border-[2.5px] border-[#F59E0B]"
+        />
+    ) : (
         <div
-            className="w-16 h-16 rounded-2xl bg-gradient-to-br from-[#f5a623]/30 to-[#f5a623]/10 flex items-center justify-center border-2 border-[#f5a623]/20"
+            className="w-full aspect-[4/3] rounded-[10px] bg-gray-100 flex items-center justify-center border-[2.5px] border-[#F59E0B]"
             aria-label={name}
         >
-            <span className="text-[#f5a623] font-bold text-lg font-display">{initials}</span>
+            <span className="text-gray-400 font-bold text-4xl font-display">{initials}</span>
         </div>
     );
+
+    return Content;
 }
 
 function SkeletonCard() {
     return (
-        <div className="flex flex-col bg-white rounded-3xl border border-[#f5a623]/10 p-6 h-[220px] animate-pulse">
-            <div className="flex items-start gap-4 mb-4">
-                <div className="w-16 h-16 rounded-2xl bg-[#f5a623]/10 flex-shrink-0" />
-                <div className="flex-1 space-y-2 pt-1">
-                    <div className="h-4 bg-[#09090b]/8 rounded-full w-3/4" />
-                    <div className="h-3 bg-[#09090b]/5 rounded-full w-1/2" />
-                    <div className="h-3 bg-[#09090b]/5 rounded-full w-1/3" />
-                </div>
+        <div className="flex flex-col bg-white rounded-[16px] border border-gray-100 p-4 h-auto animate-pulse">
+            <div className="w-full aspect-[4/3] rounded-[12px] bg-gray-200 mb-4" />
+            <div className="space-y-3">
+                <div className="h-5 bg-gray-200 rounded-full w-2/3" />
+                <div className="h-4 bg-gray-200 rounded-full w-1/2" />
+                <div className="h-4 bg-gray-200 rounded-full w-1/3" />
+                <div className="h-3 bg-gray-200 rounded-full w-full mt-4" />
+                <div className="h-3 bg-gray-200 rounded-full w-4/5" />
             </div>
-            <div className="space-y-2 mt-auto">
-                <div className="h-3 bg-[#09090b]/5 rounded-full w-full" />
-                <div className="h-3 bg-[#09090b]/5 rounded-full w-4/5" />
+            <div className="flex gap-2 mt-4 pt-2">
+                <div className="h-6 w-16 bg-gray-200 rounded-[20px]" />
+                <div className="h-6 w-20 bg-gray-200 rounded-[20px]" />
             </div>
         </div>
     );
@@ -117,85 +118,89 @@ export default function TopRatedProfessionals() {
         loadFeed();
     }, []);
 
-    // Don't render section on network error
-    if (!loading && error) return null;
+    // We now always render the section to avoid layout shifts or missing sections on transient errors
+    // if (!loading && error) return null;
 
     return (
-        <section className="bg-[#fafafa] py-20 px-6 md:px-12 border-b border-[#f5a623]/10 relative z-10">
-            <div className="max-w-7xl mx-auto">
+        <section className="bg-[#FFFDF7] px-[40px] py-[48px] relative z-10 w-full">
+            <div className="max-w-7xl mx-auto w-full">
                 {/* Header */}
-                <div className="mb-12">
-                    <p className="text-[#f5a623] text-xs uppercase tracking-[0.3em] font-semibold mb-3">
+                <div className="mb-[32px]">
+                    <p className="text-[#F59E0B] text-[11px] font-[600] uppercase tracking-[0.12em] mb-[8px]">
                         Verified &amp; Trusted
                     </p>
-                    <h2 className="font-display text-3xl md:text-4xl font-bold tracking-tight text-[#09090b]">
+                    <h2 className="font-['Syne'] text-[28px] font-[800] text-[#1a1a1a] m-0 leading-tight">
                         Top Rated Professionals
                     </h2>
-                    <p className="text-[#09090b]/50 text-base mt-3 max-w-xl">
-                        Handpicked professionals with the highest trust scores and customer satisfaction on BrikUp.
-                    </p>
                 </div>
 
                 {/* Grid */}
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5">
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-[16px]" style={{ gridTemplateColumns: 'repeat(auto-fill, minmax(220px, 1fr))' }}>
                     {loading
-                        ? Array.from({ length: 8 }).map((_, i) => <SkeletonCard key={i} />)
-                        : providers.length === 0
-                            ? Array.from({ length: 4 }).map((_, i) => (
-                                <div key={i} className="flex flex-col items-center justify-center bg-white rounded-3xl border border-dashed border-[#f5a623]/20 p-6 h-[220px] text-center">
-                                    <div className="w-12 h-12 rounded-2xl bg-[#f5a623]/10 flex items-center justify-center mb-3 text-[#f5a623] text-xl">✦</div>
-                                    <p className="text-[#09090b]/40 text-xs font-medium">Professionals<br />Coming Soon</p>
-                                </div>
-                            ))
-                            : providers.map((p, idx) => (
+                        ? Array.from({ length: 4 }).map((_, i) => <SkeletonCard key={i} />)
+                        : providers.length > 0 && providers.map((p, idx) => (
                                 <motion.div
                                     key={p._id}
                                     initial={{ opacity: 0, y: 20 }}
                                     whileInView={{ opacity: 1, y: 0 }}
                                     transition={{ delay: idx * 0.07, duration: 0.5 }}
                                     viewport={{ once: true }}
-                                    whileHover={{ y: -5 }}
-                                    className="group relative flex flex-col bg-white rounded-3xl border border-[#f5a623]/15 p-6 h-[220px] transition-all duration-300 hover:border-[#f5a623]/40 hover:shadow-[0_16px_40px_-8px_rgba(245,166,35,0.12)]"
+                                    className="group relative flex flex-col bg-white rounded-[16px] border border-[#FDE68A] overflow-hidden"
                                 >
-                                    {/* Gold hover line */}
-                                    <div className="absolute top-0 left-0 right-0 h-[2px] rounded-t-3xl bg-gradient-to-r from-transparent via-[#f5a623]/60 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
-
-                                    {/* Top row: avatar + info */}
-                                    <div className="flex items-start gap-4 mb-3">
-                                        <div className="flex-shrink-0">
-                                            <Avatar name={p.name} src={p.profile_image} />
-                                        </div>
-                                        <div className="flex-1 min-w-0 pt-1">
-                                            <h3 className="text-[#09090b] font-bold text-sm leading-tight font-display truncate">
+                                    {/* Photo section */}
+                                    <div className="pt-[10px] px-[10px]">
+                                        <Avatar name={p.name} src={p.profile_image} />
+                                    </div>
+                                    
+                                    {/* Card Body */}
+                                    <div className="pt-[10px] px-[12px] pb-[14px] flex-1 flex flex-col">
+                                        {/* Name Row */}
+                                        <div className="flex items-center gap-[6px] mb-[6px]">
+                                            <h3 className="font-['Syne'] text-[#1a1a1a] font-[700] text-[15px] leading-tight truncate">
                                                 {p.name}
                                             </h3>
+                                            <div className="flex items-center justify-center w-[15px] h-[15px] rounded-full bg-[#22c55e] flex-shrink-0">
+                                                <svg className="w-[9px] h-[9px] text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="4" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                                            </div>
+                                        </div>
+
+                                        {/* Info Rows */}
+                                        <div className="flex flex-col gap-[4px] mb-[8px]">
                                             {p.city && (
-                                                <p className="text-[#09090b]/40 text-xs mt-1 flex items-center gap-1">
-                                                    <span>📍</span>
-                                                    <span className="truncate">{p.city}</span>
-                                                </p>
+                                                <div className="flex items-center gap-[4px] text-[11px] text-[#9CA3AF]">
+                                                    <svg className="w-[12px] h-[12px] text-pink-500 flex-shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path><circle cx="12" cy="10" r="3"></circle></svg>
+                                                    <span className="truncate leading-tight mt-0.5">{p.city}</span>
+                                                </div>
                                             )}
                                             {p.averageRating != null && (
-                                                <div className="mt-1.5">
+                                                <div className="flex items-center gap-1">
                                                     <StarRating rating={p.averageRating} />
                                                 </div>
                                             )}
                                         </div>
-                                    </div>
 
-                                    {/* Trust badge */}
-                                    <div className="mb-3">
-                                        <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-[#f5a623]/10 border border-[#f5a623]/20 text-[10px] font-semibold text-[#f5a623] uppercase tracking-wide">
-                                            ✓ Verified
-                                        </span>
-                                    </div>
+                                        {/* Bio */}
+                                        {p.about && (
+                                            <p className="text-[#6B7280] text-[11px] leading-[1.5] line-clamp-2 m-0 mt-auto">
+                                                {p.about}
+                                            </p>
+                                        )}
 
-                                    {/* About */}
-                                    {p.about && (
-                                        <p className="text-[#09090b]/50 text-xs leading-relaxed line-clamp-2 mt-auto">
-                                            {p.about}
-                                        </p>
-                                    )}
+                                        {/* Tags */}
+                                        {(() => {
+                                            const tags = p.tags || p.services || [];
+                                            if (tags.length === 0) return null;
+                                            return (
+                                                <div className="flex flex-wrap gap-[6px] mt-[10px] pt-[8px] border-t border-gray-50">
+                                                    {tags.map((tag: string, i: number) => (
+                                                        <span key={i} className="bg-[#FEF3C7] text-[#92400E] text-[11px] px-[10px] py-[4px] rounded-[20px]">
+                                                            {tag}
+                                                        </span>
+                                                    ))}
+                                                </div>
+                                            );
+                                        })()}
+                                    </div>
                                 </motion.div>
                             ))
                     }
