@@ -1,7 +1,5 @@
 'use client';
 
-import { AnimatedShinyText } from '@/components/ui/animated-shiny-text';
-
 const serviceCategories = [
     {
         title: "Men's Salon",
@@ -51,39 +49,56 @@ const serviceCategories = [
 
 export default function ServicesPage() {
     return (
-        <main className="min-h-screen bg-white text-[#09090b] font-sans selection:bg-[#f5a623] selection:text-black pb-0">
-            {/* Hero Header Space */}
-            <div className="pt-24 pb-12 md:pt-32 md:pb-16 px-6 text-center max-w-4xl mx-auto">
-                <h1 className="font-display text-4xl md:text-5xl lg:text-6xl font-bold tracking-tight mb-6 leading-tight text-[#09090b]">
-                    Our Services
-                </h1>
-            </div>
+        <main className="min-h-screen bg-[#FFFDF7] text-[#09090b] font-sans pb-12 flex justify-center pt-28 md:pt-32">
+            
+            <div className="w-full max-w-5xl flex flex-col gap-[32px] px-[40px] py-[48px] max-[480px]:p-[20px]">
+                
+                {/* Page header */}
+                <section>
+                    <p className="text-[#F59E0B] text-[11px] font-[600] tracking-[0.12em] uppercase mb-[8px] m-0">
+                        What we offer
+                    </p>
+                    <h1 className="font-['Syne'] text-[36px] font-[800] text-[#1a1a1a] m-0 leading-none">
+                        Our <span className="text-[#F59E0B]">Services</span>
+                    </h1>
+                    <p className="text-[#9CA3AF] text-[14px] leading-[1.6] mt-[6px] mb-0 max-w-2xl">
+                        Browse all services available on BrikUp, connect with verified professionals near you.
+                    </p>
+                    <div className="w-[40px] h-[3px] bg-[#F59E0B] rounded-[2px] mt-[12px] mb-0" />
+                </section>
 
-            {/* Services Grid */}
-            <div className="container max-w-6xl mx-auto px-6 pb-24">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-8 md:gap-12">
+                {/* Services grid */}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-[20px]">
                     {serviceCategories.map((category, idx) => (
-                        <div key={idx} className="flex flex-col">
-                            <h2 className="text-2xl md:text-3xl font-bold mb-6 border-b border-[#f5a623]/30 pb-2 text-[#f5a623]">
-                                {category.title}
-                            </h2>
-                            <div className="flex flex-wrap gap-3">
+                        <div key={idx} className="bg-white rounded-[20px] border border-[#FDE68A] py-[20px] px-[22px] flex flex-col">
+                            {/* Card header */}
+                            <div className="flex items-center gap-[10px] pb-[14px] border-b border-[#FEF3C7] mb-[14px]">
+                                <div className="flex flex-col">
+                                    <h2 className="font-['Syne'] text-[17px] font-[800] text-[#1a1a1a] m-0 leading-tight">
+                                        {category.title}
+                                    </h2>
+                                    <p className="text-[#9CA3AF] text-[11px] m-0 mt-[2px] leading-none">
+                                        {category.services.length} Services
+                                    </p>
+                                </div>
+                            </div>
+                            
+                            {/* Service pills */}
+                            <div className="flex flex-wrap gap-[8px]">
                                 {category.services.map((service, sIdx) => (
                                     <div
                                         key={sIdx}
-                                        className="px-4 py-2 rounded-full border border-[#f5a623]/40 text-sm md:text-base font-medium whitespace-nowrap bg-[#f5a623]/10 shadow-sm"
+                                        className="bg-[#FFFBF2] border border-[#FDE68A] text-[#1a1a1a] text-[12px] font-[500] px-[14px] py-[6px] rounded-[40px] hover:bg-[#F59E0B] hover:text-white hover:border-[#F59E0B] transition-all duration-150 cursor-pointer"
                                     >
-                                        <AnimatedShinyText className="text-[#09090b]">
-                                            {service}
-                                        </AnimatedShinyText>
+                                        {service}
                                     </div>
                                 ))}
                             </div>
                         </div>
                     ))}
                 </div>
-            </div>
 
+            </div>
         </main>
     );
 }

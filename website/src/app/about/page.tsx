@@ -16,57 +16,80 @@ export const metadata: Metadata = {
  */
 export default function AboutPage() {
     return (
-        <main className="bg-white min-h-screen text-[#09090b] font-sans pt-28 md:pt-32">
-            {/* Hero Banner */}
-            <section className="max-w-5xl mx-auto px-5 sm:px-6 md:px-12 mb-12 md:mb-16">
-                <h1 className="font-display text-xl sm:text-2xl font-bold tracking-tight text-[#09090b] mb-4">
-                    About BrikUp
-                </h1>
-                <p className="text-[#09090b]/60 text-sm sm:text-base max-w-4xl leading-relaxed text-justify">
-                    BrikUp is a platform that helps people discover and book trusted local service professionals through verified profiles and transparent information, making it easier for users to choose the right expert while helping professionals build trust.
-                </p>
-            </section>
+        <main className="min-h-screen bg-[#FFFDF7] text-[#09090b] font-sans pt-28 pb-12 sm:pt-32 sm:pb-16 flex justify-center">
+            
+            <div className="w-full max-w-5xl flex flex-col gap-[32px] px-[40px] py-[48px] max-[480px]:p-[20px]">
+                {/* About Section */}
+                <section className="bg-white rounded-[20px] border border-[#FDE68A] p-[28px] sm:px-[32px]">
+                    <p className="text-[#F59E0B] text-[11px] font-[600] tracking-[0.12em] uppercase mb-[8px]">
+                        Who we are
+                    </p>
+                    <h1 className="font-['Syne'] text-[26px] font-[800] text-[#1a1a1a] m-0 mb-[16px] leading-none">
+                        About <span className="text-[#F59E0B]">BrikUp</span>
+                    </h1>
+                    <div className="w-[40px] h-[3px] bg-[#F59E0B] rounded-[2px] mb-[16px]" />
+                    
+                    <p className="text-[#6B7280] text-[14px] leading-[1.8] max-w-[680px] m-0">
+                        BrikUp is a platform that helps people <strong className="text-[#1a1a1a]">discover and book trusted local service professionals</strong> through verified profiles and transparent information, making it easier for users to choose the right expert while helping professionals build trust.
+                    </p>
+                </section>
 
-            {/* Contact Section */}
-            <section id="contact" className="max-w-5xl mx-auto px-5 sm:px-6 md:px-12 mb-12 md:mb-16 scroll-mt-32">
-                <h2 className="font-display text-xl sm:text-2xl font-bold tracking-tight text-[#09090b] mb-4">
-                    Contact Us
-                </h2>
-                <p className="text-[#09090b]/60 text-sm sm:text-base max-w-4xl leading-relaxed text-left mb-8">
-                    We'd love to hear from you. Reach us at any of the details below.
-                </p>
+                {/* Contact Section */}
+                <section id="contact" className="bg-white rounded-[20px] border border-[#FDE68A] p-[28px] sm:px-[32px] scroll-mt-32">
+                    <p className="text-[#F59E0B] text-[11px] font-[600] tracking-[0.12em] uppercase mb-[8px]">
+                        Get in touch
+                    </p>
+                    <h2 className="font-['Syne'] text-[26px] font-[800] text-[#1a1a1a] m-0 mb-[16px] leading-none">
+                        Contact <span className="text-[#F59E0B]">Us</span>
+                    </h2>
+                    <div className="w-[40px] h-[3px] bg-[#F59E0B] rounded-[2px] mb-[16px]" />
+                    
+                    <p className="text-[#9CA3AF] text-[14px] m-0">
+                        We'd love to hear from you. Reach us at any of the details below.
+                    </p>
 
-                <div className="w-full max-w-xl p-6 bg-white border border-[#f5a623]/10 rounded-2xl shadow-clean-md space-y-6">
-                    <div className="flex items-start gap-4">
-                        <div className="w-10 h-10 rounded-xl bg-[#f5a623]/5 border border-[#f5a623]/20 flex items-center justify-center shrink-0 shadow-clean-sm">
-                            <MapPin size={18} className="text-[#09090b]" />
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-[16px] mt-[20px]">
+                        {/* Office Address */}
+                        <div className="bg-[#FFFBF2] rounded-[14px] border border-[#FEF3C7] p-[18px] sm:px-[20px] flex items-start gap-[14px]">
+                            <div className="w-[38px] h-[38px] rounded-[10px] bg-[#FEF3C7] border border-[#FDE68A] flex items-center justify-center shrink-0">
+                                <MapPin size={18} className="text-[#F59E0B]" />
+                            </div>
+                            <div className="flex flex-col">
+                                <p className="text-[#F59E0B] text-[11px] font-[600] tracking-[0.06em] uppercase mt-0 mb-[6px]">
+                                    Our Office
+                                </p>
+                                <p className="text-[#1a1a1a] text-[13px] font-[500] leading-[1.6] m-0">
+                                    #13, 7th A Cross Road,
+                                </p>
+                                <p className="text-[#6B7280] text-[12px] font-[400] m-0">
+                                    Gurudarshan Layout, Vidyaranyapura,
+                                </p>
+                                <p className="text-[#6B7280] text-[12px] font-[400] m-0">
+                                    Bengaluru - 560097
+                                </p>
+                            </div>
                         </div>
-                        <div>
-                            <p className="font-display font-semibold text-sm sm:text-base text-[#09090b] mb-1">Our Office</p>
-                            <p className="text-[#09090b]/60 leading-relaxed text-xs sm:text-sm">
-                                #13, 7th A Cross Road,<br />
-                                Gurudarshan Layout, Vidyaranyapura,<br />
-                                Bengaluru - 560097
-                            </p>
+
+                        {/* Email Address */}
+                        <div className="bg-[#FFFBF2] rounded-[14px] border border-[#FEF3C7] p-[18px] sm:px-[20px] flex items-start gap-[14px]">
+                            <div className="w-[38px] h-[38px] rounded-[10px] bg-[#FEF3C7] border border-[#FDE68A] flex items-center justify-center shrink-0">
+                                <Mail size={18} className="text-[#F59E0B]" />
+                            </div>
+                            <div className="flex flex-col">
+                                <p className="text-[#F59E0B] text-[11px] font-[600] tracking-[0.06em] uppercase mt-0 mb-[6px]">
+                                    Email Us
+                                </p>
+                                <a
+                                    href="mailto:contact@brikuptech.com"
+                                    className="text-[#1a1a1a] text-[13px] font-[500] leading-[1.6] m-0 hover:text-[#F59E0B] transition-colors decoration-[#F59E0B]/30"
+                                >
+                                    contact@brikuptech.com
+                                </a>
+                            </div>
                         </div>
                     </div>
-
-                    <div className="flex items-start gap-4">
-                        <div className="w-10 h-10 rounded-xl bg-[#f5a623]/5 border border-[#f5a623]/20 flex items-center justify-center shrink-0 shadow-clean-sm">
-                            <Mail size={18} className="text-[#09090b]" />
-                        </div>
-                        <div>
-                            <p className="font-display font-semibold text-sm sm:text-base text-[#09090b] mb-1">Email Us</p>
-                            <a
-                                href="mailto:contact@brikuptech.com"
-                                className="text-[#09090b]/60 hover:text-[#f5a623] transition-colors font-medium underline underline-offset-4 decoration-[#f5a623]/30 break-all text-xs sm:text-sm"
-                            >
-                                contact@brikuptech.com
-                            </a>
-                        </div>
-                    </div>
-                </div>
-            </section>
+                </section>
+            </div>
         </main>
     );
 }

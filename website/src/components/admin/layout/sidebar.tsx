@@ -16,7 +16,8 @@ import {
     ChevronLeft,
     ChevronRight,
     Tags,
-    Lock
+    Lock,
+    X
 } from "lucide-react"
 import { useSharedNotifications } from "@/components/admin/providers/notification-provider"
 import { useAdminProfile } from "@/hooks/admin/use-admin-profile"
@@ -34,7 +35,7 @@ const sidebarItems = [
 
 import { ALLOWED_ROUTES_FOR_NON_SUPER } from "@/lib/admin/constants"
 
-export function Sidebar() {
+export function Sidebar({ mobile, onClose }: { mobile?: boolean, onClose?: () => void }) {
     const pathname = usePathname()
     const [collapsed, setCollapsed] = useState(false)
     const { role } = useAdminProfile()
@@ -53,19 +54,28 @@ export function Sidebar() {
     const isSuperAdmin = role === "superadmin"
 
     return (
-        <div className={`
-            relative
-            ${collapsed ? "w-24" : "w-72"}
-            transition-all duration-300 ease-in-out
-            bg-white dark:bg-neutral-900 border-r border-slate-200 dark:border-neutral-800 shadow-sm
-            hidden md:flex flex-col min-h-screen z-10
-        `}>
-            <button
-                onClick={() => setCollapsed(!collapsed)}
-                className="absolute -right-3 top-6 bg-white dark:bg-neutral-800 border border-slate-200 dark:border-neutral-700 text-slate-400 dark:text-neutral-400 hover:text-violet-600 rounded-full p-1 shadow-sm transition-colors z-20 md:flex hidden hover:bg-violet-50 dark:hover:bg-white/10"
-            >
-                {collapsed ? <ChevronRight size={16} /> : <ChevronLeft size={16} />}
-            </button>
+        <div className={cn(
+            "relative transition-all duration-300 ease-in-out bg-white dark:bg-neutral-900 border-r border-slate-200 dark:border-neutral-800 shadow-sm flex flex-col min-h-screen z-[60] md:z-10",
+            collapsed ? "w-24" : "w-72",
+            mobile ? "w-72 border-r-0" : "hidden md:flex"
+        )}>
+            {!mobile && (
+                <button
+                    onClick={() => setCollapsed(!collapsed)}
+                    className="absolute -right-3 top-6 bg-white dark:bg-neutral-800 border border-slate-200 dark:border-neutral-700 text-slate-400 dark:text-neutral-400 hover:text-violet-600 rounded-full p-1 shadow-sm transition-colors z-20 md:flex hidden hover:bg-violet-50 dark:hover:bg-white/10"
+                >
+                    {collapsed ? <ChevronRight size={16} /> : <ChevronLeft size={16} />}
+                </button>
+            )}
+
+            {mobile && (
+                <button
+                    onClick={onClose}
+                    className="absolute right-4 top-4 p-2 text-slate-400 hover:text-slate-600 md:hidden"
+                >
+                    <X size={20} />
+                </button>
+            )}
 
             <div className="h-full px-3 py-4 flex flex-col">
 
