@@ -107,13 +107,6 @@ export default function AnalyticsPage() {
                             description={isLive ? "Unique users active today." : isAllTime ? "Total unique user accounts registered." : `Unique active users for this ${timeRange} period.`}
                         />
                         <MetricCard
-                            title="Total Users"
-                            value={allTime.isLoading ? "..." : formatNumber(summary?.totalUsers || 0)}
-                            sub="Registered Accounts"
-                            icon={<Users className="w-4 h-4 text-indigo-500" />}
-                            description="Total registered user accounts. Updated: Midnight."
-                        />
-                        <MetricCard
                             title="Retention Rate"
                             value={isLoading ? "..." : `${((activeData?.userRetentionRate || 0) * 100).toFixed(1)}%`}
                             sub={isLive ? "Day-over-Day Stickiness" : `${timeRange} Stickiness`}
@@ -190,14 +183,6 @@ export default function AnalyticsPage() {
                             description={`Total user searches initiated in this ${timeRange} period.`}
                         />
                         <MetricCard
-                            title="Booking Conversion"
-                            value={isLoadingIntent ? "..." : `${((isLive ? conversionRate : (activeData?.conversionRate || 0)) * 100).toFixed(1)}%`}
-                            sub="Search → Booking"
-                            icon={<Target className="w-4 h-4 text-violet-500" />}
-                            isLive={isLive}
-                            description={isLive ? "% of searches that result in a booking (Live)." : `% of searches that result in a booking (${timeRange}).`}
-                        />
-                        <MetricCard
                             title="Bookings"
                             value={isLoading ? "..." : formatNumber(activeData?.bookings || 0)}
                             sub={`Initiated ${timeRange}`}
@@ -253,48 +238,6 @@ export default function AnalyticsPage() {
                                             </UITooltip>
                                         </div>
                                         <span className="text-sm font-bold text-blue-600 dark:text-blue-400">{allTime.isLoading ? "..." : formatNumber(summary?.trustedProviders || 0)}</span>
-                                    </div>
-                                    <div className="flex items-center justify-between">
-                                        <div className="flex items-center gap-2">
-                                            <span className="text-xs font-medium text-slate-500">Resolution Rate</span>
-                                            <UITooltip>
-                                                <TooltipTrigger asChild>
-                                                    <Info className="w-3 h-3 text-slate-400" />
-                                                </TooltipTrigger>
-                                                <TooltipContent className="text-[10px] p-2 bg-slate-900 text-white border-none">
-                                                    Percentage of complaints successfully resolved.
-                                                </TooltipContent>
-                                            </UITooltip>
-                                        </div>
-                                        <span className="text-sm font-bold text-emerald-600 dark:text-emerald-400">{isLoading ? '...' : `${((activeData?.complaintResolutionRate || 0) * 100).toFixed(1)}%`}</span>
-                                    </div>
-                                    <div className="flex items-center justify-between">
-                                        <div className="flex items-center gap-2">
-                                            <span className="text-xs font-medium text-slate-500">Resolution Time</span>
-                                            <UITooltip>
-                                                <TooltipTrigger asChild>
-                                                    <Info className="w-3 h-3 text-slate-400" />
-                                                </TooltipTrigger>
-                                                <TooltipContent className="text-[10px] p-2 bg-slate-900 text-white border-none">
-                                                    Average time taken to resolve a complaint.
-                                                </TooltipContent>
-                                            </UITooltip>
-                                        </div>
-                                        <span className="text-sm font-bold text-slate-900 dark:text-white">{isLoading ? '...' : `${(activeData?.complaintResolutionTime || 0).toFixed(1)} h`}</span>
-                                    </div>
-                                    <div className="flex items-center justify-between border-t border-slate-100 dark:border-neutral-800 pt-3">
-                                        <div className="flex items-center gap-2">
-                                            <span className="text-xs font-medium text-slate-500">Open Griefs</span>
-                                            <UITooltip>
-                                                <TooltipTrigger asChild>
-                                                    <Info className="w-3 h-3 text-slate-400" />
-                                                </TooltipTrigger>
-                                                <TooltipContent className="text-[10px] p-2 bg-slate-900 text-white border-none">
-                                                    Current count of unresolved complaints.
-                                                </TooltipContent>
-                                            </UITooltip>
-                                        </div>
-                                        <span className="text-sm font-bold text-orange-600">{isLoading ? '...' : formatNumber(activeData?.pendingComplaints || 0)}</span>
                                     </div>
                                     <div className="flex items-center justify-between border-t border-slate-100 dark:border-neutral-800 pt-3">
                                         <div className="flex items-center gap-2">
@@ -543,14 +486,6 @@ export default function AnalyticsPage() {
                 <div className="mb-10">
                     <SectionLabel label="User Journey" sub="Session-level telemetry" />
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                        <MetricCard
-                            title="Funnel Efficiency"
-                            value={isLoading ? '...' : `${((activeData?.searchBookFunnel?.sessionConversionRate || 0) * 100).toFixed(1)}%`}
-                            sub="Path conversion"
-                            icon={<Target className="w-4 h-4 text-violet-500" />}
-                            isLive={isLive}
-                            description={isLive ? "% of all visitor sessions that end in a booking (Live)." : "% of all visitor sessions that end in a booking."}
-                        />
                         <MetricCard
                             title="Avg Session"
                             value={isLoading ? '...' : `${((activeData?.userIntents?.avgSessionDuration || 0) / 1000).toFixed(1)}s`}
